@@ -1,0 +1,16 @@
+<div class="title">Presets</div>
+<div class="view">
+	<div ng-repeat="preset in presets"
+		 ng-class="{ 'selected': $index == presetIndex }"
+         ng-click="presetClicked($index)"
+         class="preset">
+         <div ng-repeat="group in preset.groups">
+         	<div ng-click="removeGroup(preset,group)" class="preset_group">
+         		{{getGroupName(group.id)}}
+         	</div>
+         </div>
+	</div>
+	<div class="preset">
+		<div class="preset_add" ng-click="addPreset()">+<div>		
+	</div>	
+</div>
