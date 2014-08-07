@@ -15,7 +15,7 @@ class Nuve:
         self.url = url
         self.port = port
 
-    def createRoom(self, name, options, params=None):
+    def createRoom(self, name, options=None, params=None):
         response = self.send('POST', json.dumps({"name": name, "options": options}), "/rooms/", params)
         return response
 
