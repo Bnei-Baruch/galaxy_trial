@@ -38,6 +38,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'widget_tweaks',
     'galaxy_trial',
     'api',
     'conference',
@@ -95,6 +96,10 @@ TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
 
 
 # Authentication
+
+LOGIN_URL = '/auth/login'
+
+LOGOUT_URL = '/auth/logout'
 
 LOGIN_REDIRECT_VIEW = 'galaxy_trial:index'
 
