@@ -1,6 +1,5 @@
 webrtc.service('GetGroups', ['$http', function ($http) {
-    // return $http.get('/api/groups');
-    return $http.get('/static/json/groups.json');
+    return $http.get('/api/participants');
 }]);
 
 webrtc.service('GetPresets', ['$http', function ($http) {	
