@@ -33,7 +33,7 @@ function onLoadCtrl ($scope, $rootScope, $translate) {
 
     var addMonitor = function(number) {
         if (number in $rootScope.monitors) {
-            alert('Monitor ' + number + ' allredy exists!');
+            alert('Monitor ' + number + ' already exists!');
             return;
         }
         var monitor = window.open("monitor.html");
@@ -228,9 +228,9 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
             $rootScope.groupHash[group.id] = group;
         }
 
-        var nuveData = $('#js-nuve-data').data();
+        var nuveToken = $('body').data('nuve-token');
 
-        $rootScope.room = Erizo.Room({token: nuveData.token});
+        $rootScope.room = Erizo.Room({token: nuveToken});
 
         $rootScope.participantElementIDs = {};
 

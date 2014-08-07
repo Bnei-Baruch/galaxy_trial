@@ -7,7 +7,7 @@ webrtc.run(function($rootScope) {
 webrtc.config(['$translateProvider', function ($translateProvider) {
     $translateProvider
         .useStaticFilesLoader({
-            prefix: 'i18n/locale-',
+            prefix: '/static/i18n/locale-',
             suffix: '.json'
         })
         .preferredLanguage('en');

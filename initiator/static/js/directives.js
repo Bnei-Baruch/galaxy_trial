@@ -1,44 +1,44 @@
 webrtc.directive("onload", function () {
     return {
         scope: {},
-        templateUrl: './html/onload.html',
+        templateUrl: '/static/html/onload.html',
     };
 });
 
 webrtc.directive("header", function () {
     return {
-        templateUrl: './html/header.html',
+        templateUrl: '/static/html/header.html',
         controller: headerCtrl
     };
 });
 
 webrtc.directive("footer", function () {
     return {
-        templateUrl: 'html/footer.html',
+        templateUrl: '/static/html/footer.html',
         controller: footerCtrl
     };
 });
 webrtc.directive("body", function () {
     return {
-        templateUrl: 'html/body.html',
+        templateUrl: '/static/html/body.html',
         controller: bodyCtrl
     };
 });
 webrtc.directive("preview", function () {
     return {
-        templateUrl: 'html/preview.html',
+        templateUrl: '/static/html/preview.html',
         controller: previewCtrl
     };
 });
 webrtc.directive("presets", function () {
     return {
-        templateUrl: 'html/presets.html',
+        templateUrl: '/static/html/presets.html',
         controller: presetsCtrl
     };
 });
 webrtc.directive("groups", function () {
     return {
-        templateUrl: 'html/groups.html',
+        templateUrl: '/static/html/groups.html',
         controller: groupsCtrl
     };
 });
@@ -67,6 +67,6 @@ webrtc.directive("groupVideo", function ($rootScope) {
 webrtc.directive("onloadMonitor", function () {
     return {
         scope: {},
-        templateUrl: './html/onloadMonitor.html',
+        templateUrl: '/static/html/html/onloadMonitor.html',
     };
 });

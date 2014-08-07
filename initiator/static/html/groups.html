@@ -4,14 +4,14 @@
 		 ng-class="{ 'selected': group == selectedGroup }"
          ng-click="groupClicked(group)"
          class="group">
-		<img src='images/connected.png' />
+		<img src='/static/images/connected.png' />
 		{{group.name}}
 	</div>
 	<div ng-repeat="group in groupList | filter: isGroupDisconected" 
 		 ng-class="{ 'selected': group == selectedGroup }"
 		 ng-click="groupClicked(group)"
 		 class="group">
-		<img src='images/disconnected.png' />
+		<img src='/static/images/disconnected.png' />
 		{{group.name}}
 	</div>
 </div>

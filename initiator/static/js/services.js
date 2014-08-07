@@ -1,9 +1,9 @@
 webrtc.service('GetGroups', ['$http', function ($http) {
-    // return $http.get('https://galaxy.toh.info/groups.json');
-    return $http.get('./json/groups.json');
+    // return $http.get('/api/groups');
+    return $http.get('/static/json/groups.json');
 }]);
 
 webrtc.service('GetPresets', ['$http', function ($http) {	
-//    return $http.get('https://galaxy.toh.info/ui_presets.json');
-    return $http.get('./json/presets.json');
+//    return $http.get('/api/presets');
+    return $http.get('/static/json/presets.json');
 }]);
