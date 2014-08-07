@@ -28,11 +28,11 @@ class Presets(BaseAPIView):
     def get(self, request):
         participants = User.objects.filter(groups__name='participant')
         result = {
-            'presets': [{
+            'presets': {
                 'id': 1,
                 'size': 1,
                 'groups': [dict(id=participant.username)
                            for participant in participants]
-            } for participant in participants]
+            }
         }
         return result
