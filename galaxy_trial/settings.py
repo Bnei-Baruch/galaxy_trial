@@ -87,3 +87,15 @@ STATIC_URL = '/static/'
 # Authentication
 
 LOGIN_REDIRECT_VIEW = 'galaxy_trial:index'
+
+
+# Nuve
+
+NUVE_CONFIG = {
+    'service': '53d6ff0759b33ce5110670d8',
+    'key': '31026',
+    'url': 'localhost',
+    'port': 3000,
+}
+
+NUVE_ROOM_NAME = 'galaxy-room'
