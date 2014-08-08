@@ -8,6 +8,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.6/ref/settings/
 """
 
+from django.conf import global_settings
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -36,8 +38,10 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'initiator',
-    'participant',
+    'widget_tweaks',
+    'galaxy_trial',
+    'api',
+    'conference',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -83,8 +87,21 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+
+# Templates
+
+TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
+    'django.core.context_processors.request',
+)
+
 
 # Authentication
+
+LOGIN_URL = '/auth/login'
+
+LOGOUT_URL = '/auth/logout'
 
 LOGIN_REDIRECT_VIEW = 'galaxy_trial:index'
 

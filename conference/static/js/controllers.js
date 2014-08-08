@@ -203,11 +203,13 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
     var pushConnectedGroup = function (participantID) {
         var group = $rootScope.groupHash[participantID];
         $scope.conectedGroups.push(group);
+        $scope.$apply();
     }
 
     var removeConnectedGroup = function (participantID) {
         var group = $rootScope.groupHash[participantID];
         $scope.conectedGroups.splice($scope.conectedGroups.indexOf(group), 1);
+        $scope.$apply();
     }
 
     $scope.isGroupConected = function(group) {

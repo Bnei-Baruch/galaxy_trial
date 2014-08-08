@@ -8,6 +8,6 @@ def index(request):
     """
 
     if request.user.groups.filter(name='initiator').exists():
-        return redirect('initiator_index')
+        return redirect('initiator')
     else:
-        return redirect('participant_index')
+        return redirect('participant')

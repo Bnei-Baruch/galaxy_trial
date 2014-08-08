@@ -1,0 +1,46 @@
+<!DOCTYPE html>{% load i18n %}
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>{% trans "Participant page" %}</title>
+    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon" />
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/cssreset-min.css">
+    <!-- Simple Grid -->
+    <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7; IE=EmulateIE9" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/SimpleGrid/base.css" type="text/css" media="all" />
+    <!--[if lt IE 9 ]><link rel="stylesheet" href="./css/720_grid.css" type="text/css" /><![endif]-->
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/SimpleGrid/720_grid.css" type="text/css" media="screen and (min-width: 720px)" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/SimpleGrid/986_grid.css" type="text/css" media="screen and (min-width: 986px)" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/SimpleGrid/1236_grid.css" media="screen and (min-width: 1236px)" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/main.css" />
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="{{ STATIC_URL }}js/vendor/erizo.js"></script>
+    <script src="{{ STATIC_URL }}js/participant.js"></script>
+</head>
+<body data-nuve-token="{{ nuve_token }}" data-participant-id="{{ request.user.username }}">
+    <div class="container">	
+        <header class="banner-wrap">
+            <div class="banner">
+                <h1 id="logo">Participant Page for {{ request.user.get_full_name }}</h1>
+            </div>
+        </header>
+        <div class="grid">
+            <div class="row">
+                <div class="slot-6">&nbsp;</div>
+                <div class="slot-7-8">
+                    <div class="title">Local video stream</div>
+                    <div id="js-local-video" class="view preview">
+                    </div>
+                </div>
+                <div class="slot-9">&nbsp;</div>
+            </div>
+        </div>
+        <footer id="footer" class="row footer">
+        </footer>
+    </div>
+</body>
+</html>

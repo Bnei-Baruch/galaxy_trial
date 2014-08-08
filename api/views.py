@@ -6,17 +6,33 @@ from django.contrib.auth.models import User
 
 
 class BaseAPIView(View):
-    pass
-
-
-class ParticipantsAPI(View):
-    def get(self, request):
-        participants = User.objects.filter(groups__name='participant')
-        result = dict(groups=[
-            {
-                'id': participant.username,
-                'name': participant.get_full_name()
-            } for participant in participants
-        ])
+    def dispatch(self, request, *args, **kwargs):
+        result = super().dispatch(request, *args, **kwargs)
         return HttpResponse(json.dumps(result),
                             content_type='application/json')
+
+
+class Participants(BaseAPIView):
+    def get(self, request):
+        participants = User.objects.filter(groups__name='participant')
+        result = {
+            'groups': [{
+                'id': participant.username,
+                'name': participant.get_full_name()
+            } for participant in participants]
+        }
+        return result
+
+
+class Presets(BaseAPIView):
+    def get(self, request):
+        participants = User.objects.filter(groups__name='participant')
+        result = {
+            'presets': [{
+                'id': 1,
+                'size': 1,
+                'groups': [dict(id=participant.username)
+                           for participant in participants]
+            }]
+        }
+        return result
