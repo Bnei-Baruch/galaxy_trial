@@ -15,7 +15,7 @@ function onLoadCtrl ($scope, $rootScope, $translate) {
         for (var i=1; i<=monitorNumber; i++) {
             if(event.which === (i+48))
             {
-                getMonitor(i).test();
+                getMonitor(i).test($('video')[0].src);
                 //monitorScope.$broadcast('showGroupPreview', {name: 'virtual-group', id: 'virtual-group'});
             } 
         }
@@ -36,7 +36,7 @@ function onLoadCtrl ($scope, $rootScope, $translate) {
             alert('Monitor ' + number + ' already exists!');
             return;
         }
-        var monitor = window.open("monitor.html");
+        var monitor = window.open("/static/html/monitorPopup.html");
         $rootScope.monitors[number] = monitor;
     }
 
@@ -44,9 +44,9 @@ function onLoadCtrl ($scope, $rootScope, $translate) {
         return $rootScope.monitors[number];
     }
 
-    /*for (var i=1; i<=monitorNumber; i++)
+    for (var i=1; i<=monitorNumber; i++)
         addMonitor(i);
-*/
+
     window.onbeforeunload = function (e) {
         for (var i=1; i<=monitorNumber; i++) 
             $rootScope.monitors[i].close();   

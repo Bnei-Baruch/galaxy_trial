@@ -67,6 +67,6 @@ webrtc.directive("groupVideo", function ($rootScope) {
 webrtc.directive("onloadMonitor", function () {
     return {
         scope: {},
-        templateUrl: '/static/html/html/onloadMonitor.html',
+        templateUrl: '/static/html/onloadMonitor.html',
     };
 });
