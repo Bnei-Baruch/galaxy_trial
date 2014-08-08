@@ -94,7 +94,7 @@ LOGIN_REDIRECT_VIEW = 'galaxy_trial:index'
 NUVE_CONFIG = {
     'service': '53d6ff0759b33ce5110670d8',
     'key': '31026',
-    'url': 'localhost',
+    'url': 'licode.socio2.net',
     'port': 3000,
 }
 
