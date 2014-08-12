@@ -62,10 +62,13 @@ webrtc.directive("groupVideo", function ($rootScope) {
 
             var streams = $rootScope.room.getStreamsByAttribute('participantID', attrs.videoId);
 
-            if (!isGroupOnMonitor(attrs.videoId))
+            if (!isGroupOnMonitor(attrs.videoId)) {
                 $rootScope.room.subscribe(streams[0]);
-            else
-                streams[0].show(attrs.id, {speaker: false});
+            } else {
+                $scope.timeout(function() {
+                    streams[0].show(attrs.id, {speaker: false});
+                });
+            }
 
             $scope.$on('$destroy', function() {
                 if (isGroupOnMonitor(attrs.videoId)) {

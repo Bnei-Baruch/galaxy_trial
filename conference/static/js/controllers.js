@@ -282,8 +282,9 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
 groupsCtrl.$inject = ["$scope","$rootScope","GetGroups"];
 
 
-function groupVideoCtrl ($scope, $rootScope) {
+function groupVideoCtrl ($scope, $rootScope, $timeout) {
     $scope.videoId = '';
+    $scope.timeout = $timeout;
 }
-groupVideoCtrl.$inject = ["$scope","$rootScope"];
+groupVideoCtrl.$inject = ["$scope","$rootScope","$timeout"];
 
