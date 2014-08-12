@@ -85,8 +85,9 @@ function previewCtrl ($scope, $rootScope) {
             if (!isGroupOnOtherMonitor(monitorNumber, groupId)) {
                 console.log('Destroy video on monitor ' + monitorNumber + ' ( participantId:' + groupId + ')');
                 var streams = $rootScope.room.getStreamsByAttribute('participantID', groupId);
-                if (streams != null && streams[0] != null)
+                if (streams != null && streams[0] != null) {
                     $rootScope.room.unsubscribe(streams[0]);
+                }
             }
         }
 

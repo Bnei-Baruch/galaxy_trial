@@ -9,7 +9,8 @@ from conference import nuve
 nuve_client = nuve.Nuve(**settings.NUVE_CONFIG)
 
 # Getting a room
-rooms = nuve_client.getRooms()
+rooms = [room for room in nuve_client.getRooms()
+         if room['name'] == settings.NUVE_ROOM_NAME]
 
 if not rooms:
     room = nuve_client.createRoom(settings.NUVE_ROOM_NAME)
