@@ -208,28 +208,6 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
             $rootScope.$broadcast('showGroupPreview', group);
     };
 
-    /* Adds a new participant toggle button and binds its click event
-    */
-    var onParticipantConnected = function (participantID) {
-    }
-
-    /* Enables participant's toggle button when his video stream is ready
-    */
-    var onParticipantVideoReady = function (participantID) {
-        $scope.conectedGroups.push({name: getGroupName(participantID), id: participantID});
-        //$scope.$apply();
-    }
-
-    /* Removes participant's toggle button and video widget on leaving
-    */
-    var onParticipantLeft = function (participantID) {
-
-    }
-
-    var onConnectionClosed = function() {
-        alert('Connection closed because another initator has connected');
-    }
-
     var getGroupName = function(id) {
         if (id in $rootScope.groupHash)
             return $rootScope.groupHash[id].name;
