@@ -1,10 +1,9 @@
 /*jshint indent:4, strict:true*/
-
-
 function onLoadCtrl ($scope, $rootScope, $translate) {
-    var monitorNumber = 2;
+    $rootScope.monitorNumber = 2;
+    $rootScope.monitorGroups = {};
     $rootScope.monitors = {};
-
+    
     $scope.keyDown = function(event){
         if(event.which === 17){ //ctrl
             $rootScope.ctrlDown = true;   
@@ -12,11 +11,9 @@ function onLoadCtrl ($scope, $rootScope, $translate) {
         if(event.which === 18){ //alt
             $rootScope.altDown = true;   
         }
-        for (var i=1; i<=monitorNumber; i++) {
-            if(event.which === (i+48))
-            {
-                getMonitor(i).test($('video')[0].src);
-                //monitorScope.$broadcast('showGroupPreview', {name: 'virtual-group', id: 'virtual-group'});
+        for (var i=1; i<=$rootScope.monitorNumber; i++) {
+            if(event.which === (i+48)) {
+                $rootScope.$broadcast('transferPreviewToMonitor', i);
             } 
         }
     }
@@ -28,7 +25,6 @@ function onLoadCtrl ($scope, $rootScope, $translate) {
         if(event.which === 18){ //alt
             $rootScope.altDown = false;   
         }
-
     }
 
     var addMonitor = function(number) {
@@ -36,19 +32,16 @@ function onLoadCtrl ($scope, $rootScope, $translate) {
             alert('Monitor ' + number + ' already exists!');
             return;
         }
-        var monitor = window.open("/static/html/monitorPopup.html");
+        var monitor = window.open("/static/html/monitor.html");
         $rootScope.monitors[number] = monitor;
+        $rootScope.monitorGroups[number] = {};
     }
 
-    var getMonitor = function(number) {
-        return $rootScope.monitors[number];
-    }
-
-    for (var i=1; i<=monitorNumber; i++)
+    for (var i=1; i<=$rootScope.monitorNumber; i++)
         addMonitor(i);
 
     window.onbeforeunload = function (e) {
-        for (var i=1; i<=monitorNumber; i++) 
+        for (var i=1; i<=$rootScope.monitorNumber; i++) 
             $rootScope.monitors[i].close();   
     };
 }
@@ -75,22 +68,65 @@ bodyCtrl.$inject = ["$scope","$rootScope"];
 
 function previewCtrl ($scope, $rootScope) {
     $scope.previewList = [];
+
     $scope.previewHtml = '';
     $scope.showTitle = false;
     $scope.$on("showGroupPreview", function (e, group) {
         $scope.previewList = [group];
-        $scope.$apply();
+        //$scope.$apply();
     });
     $scope.$on("showPresetPreview", function (e, preset) {
         $scope.previewList = preset.groups;
-        $scope.$apply();
+        //$scope.$apply();
     });
+    $scope.$on("transferPreviewToMonitor", function (e, monitorNumber) {
+        // Check if there is a need to unbind videos that is currently on the monitor
+        for (var groupId in  $rootScope.monitorGroups[monitorNumber]) {
+            if (!isGroupOnOtherMonitor(monitorNumber, groupId)) {
+                console.log('Destroy video on monitor ' + monitorNumber + ' ( participantId:' + groupId + ')');
+                var streams = $rootScope.room.getStreamsByAttribute('participantID', groupId);
+                if (streams != null && streams[0] != null)
+                    $rootScope.room.unsubscribe(streams[0]);
+            }
+        }
+
+        // Save the groups that going to be transfer to monitor in monitorGroups
+        for (var i=0;i<$scope.previewList.length;i++) {
+            var group = $scope.previewList[i];
+            $rootScope.monitorGroups[monitorNumber][group.id] = true;
+        }
+
+        // Transfer preview to monitor
+        var monitor = getMonitor(monitorNumber);
+        var previewHtml = $('#preview').clone()[0].outerHTML;
+        monitor.showPreview(previewHtml);
+    });
+    var getMonitor = function(number) {
+        return $rootScope.monitors[number];
+    }
+    var isGroupOnOtherMonitor = function(monitorNumber,groupId) {
+        for (var i=1; i<=$rootScope.monitorNumber; i++) {
+            if (i != monitorNumber && $rootScope.monitorGroups[i][groupId] == true)
+                return true;
+            }
+        return false;
+    }
+    var isGroupOnPreview = function(groupId) {
+        for (var i=0;i<$scope.previewList.length;i++) {
+        	var group = $scope.previewList[i];
+        	if (group.id == groupId)
+        		return true;
+        }
+        return false;
+    }
+
     $scope.isGroupConected = function(group) {
         for (var i=0; i < $scope.conectedGroups.length; i++)
             if ($scope.conectedGroups[i].id == group.id)
                 return true;
         return false;
     }
+
 }
 previewCtrl.$inject = ["$scope","$rootScope"];
 
@@ -180,7 +216,7 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
     */
     var onParticipantVideoReady = function (participantID) {
         $scope.conectedGroups.push({name: getGroupName(participantID), id: participantID});
-        $scope.$apply();
+        //$scope.$apply();
     }
 
     /* Removes participant's toggle button and video widget on leaving

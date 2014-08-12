@@ -46,21 +46,36 @@ webrtc.directive("groups", function () {
 webrtc.directive("groupVideo", function ($rootScope) {
     return {
         restrict: 'E',   
+        controller: groupVideoCtrl,
         link: function ($scope, element, attrs) {
-          console.log("Initialize video (ElementId:" + attrs.id + ' participantId:' + attrs.videoId);
+            var isGroupOnMonitor = function(videoId) {
+                for (var i=1; i<=$rootScope.monitorNumber; i++) {
+                if ($rootScope.monitorGroups[i][videoId] == true)
+                    return true;
+                }
+                return false;
+            }
 
-          $rootScope.participantElementIDs[attrs.videoId] = attrs.id;
+            console.log("Initialize video (ElementId:" + attrs.id + ' participantId:' + attrs.videoId);
 
-          var streams = $rootScope.room.getStreamsByAttribute('participantID', attrs.videoId);
-          $rootScope.room.subscribe(streams[0]);
+            $rootScope.participantElementIDs[attrs.videoId] = attrs.id;
 
-          $scope.$on('$destroy', function() {
-            console.log("Destroy video (ElementId:" + attrs.id + ' participantId:' + attrs.videoId);
-            var streams = $rootScope.room.getStreamsByAttribute('participantID', attrs.videoId);
-            $rootScope.room.unsubscribe(streams[0]);
-          });
+            //if (!isGroupOnMonitor(attrs.videoId)) {
+                var streams = $rootScope.room.getStreamsByAttribute('participantID', attrs.videoId);
+                $rootScope.room.subscribe(streams[0]);
+            //}
+
+            $scope.$on('$destroy', function() {
+                if (isGroupOnMonitor(attrs.videoId)) {
+                    console.log("Skip destroy video (ElementId:" + attrs.id + ' participantId:' + attrs.videoId + ' because it is on monitor');
+                    return;
+                }
+                console.log("Destroy video (ElementId:" + attrs.id + ' participantId:' + attrs.videoId);
+                var streams = $rootScope.room.getStreamsByAttribute('participantID', attrs.videoId);
+                if (streams != null && streams[0] != null)
+                    $rootScope.room.unsubscribe(streams[0]);
+            });          
         }
-
     };
 });
 

@@ -31,13 +31,14 @@ body {
 .preset{
 	cursor: pointer;
 	display: block;
-	width: 150px;
+	width: 140px;
 	height: 150px;
 	background: #f7f7f7;
 	border-radius: 10px;
 	float: left;
 	margin: 0 10px 10px 0;
 	padding: 10px 10px 0 10px;
+	overflow-y: auto;
 }
 .preset_add {
 	width: 100%;
