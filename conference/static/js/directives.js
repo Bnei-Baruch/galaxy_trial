@@ -56,6 +56,16 @@ webrtc.directive("groupVideo", function ($rootScope) {
                 return false;
             }
 
+            var getGroupName = function(id) {
+                if (id in $rootScope.groupHash)
+                    return $rootScope.groupHash[id].name;
+                else
+                    return id;
+            }
+
+            var htmlText = '<div class="groupTitle">'+getGroupName(attrs.videoId)+'</div>';
+            element.append(htmlText);
+
             console.log("Initialize video (ElementId:" + attrs.id + ' participantId:' + attrs.videoId);
 
             $rootScope.participantElementIDs[attrs.videoId] = attrs.id;
@@ -64,6 +74,7 @@ webrtc.directive("groupVideo", function ($rootScope) {
 
             if (!isGroupOnMonitor(attrs.videoId)) {
                 $rootScope.room.subscribe(streams[0]);
+                streams[0].play();
             } else {
                 $scope.timeout(function() {
                     streams[0].show(attrs.id, {speaker: false});

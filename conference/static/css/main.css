@@ -105,3 +105,12 @@ h1 {
 	border-bottom-left-radius: 5px;
 	height: 25px;
 }
+.groupTitle {
+	position:absolute;
+	z-index:1000;
+	padding:5px;
+	background: #00F;
+	color:#FFF;
+	font-size: 24px;
+	min-width: 200px;
+}

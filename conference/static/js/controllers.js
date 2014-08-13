@@ -81,13 +81,14 @@ function previewCtrl ($scope, $rootScope) {
     });
     $scope.$on("transferPreviewToMonitor", function (e, monitorNumber) {
         // Check if there is a need to unbind videos that is currently on the monitor
-        for (var groupId in  $rootScope.monitorGroups[monitorNumber]) {
-            if (!isGroupOnOtherMonitor(monitorNumber, groupId)) {
+        for (var groupId in $rootScope.monitorGroups[monitorNumber]) {
+            if (!isGroupOnOtherMonitor(monitorNumber, groupId) && !isGroupOnPreview(groupId)) {
                 console.log('Destroy video on monitor ' + monitorNumber + ' ( participantId:' + groupId + ')');
                 var streams = $rootScope.room.getStreamsByAttribute('participantID', groupId);
                 if (streams != null && streams[0] != null) {
                     $rootScope.room.unsubscribe(streams[0]);
                 }
+                $rootScope.monitorGroups[monitorNumber][groupId]=false;
             }
         }
 
