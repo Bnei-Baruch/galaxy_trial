@@ -63,8 +63,10 @@ webrtc.directive("groupVideo", function ($rootScope) {
                     return id;
             }
 
-            var htmlText = '<div class="groupTitle">'+getGroupName(attrs.videoId)+'</div>';
-            element.append(htmlText);
+            $scope.timeout(function() {
+                var htmlText = '<div class="group-label-container"><label>' + getGroupName(attrs.videoId) + '</label></div>';
+                element.append(htmlText);
+            });
 
             console.log("Initialize video (ElementId:" + attrs.id + ' participantId:' + attrs.videoId);
 
