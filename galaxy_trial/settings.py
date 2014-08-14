@@ -26,6 +26,10 @@ DEBUG = True
 
 TEMPLATE_DEBUG = True
 
+TEMPLATE_DIRS = (
+    'galaxy_trial/templates',
+)
+
 ALLOWED_HOSTS = []
 
 
@@ -102,6 +106,8 @@ TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
 LOGIN_URL = '/auth/login'
 
 LOGOUT_URL = '/auth/logout'
+
+LOGIN_REDIRECT_URL = '/'
 
 LOGIN_REDIRECT_VIEW = 'galaxy_trial:index'
 

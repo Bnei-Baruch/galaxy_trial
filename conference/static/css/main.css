@@ -120,6 +120,11 @@ h1 {
 	padding:0px;
 }
 
+.banner-wrap a {
+    float: right;
+    margin-right: 10px;
+}
+
 .bar {
 	background: #ddf;
 	padding: 5px;
