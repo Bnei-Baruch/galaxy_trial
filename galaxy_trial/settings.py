@@ -27,7 +27,7 @@ DEBUG = True
 TEMPLATE_DEBUG = True
 
 TEMPLATE_DIRS = (
-    'galaxy_trial/templates',
+    os.path.join(BASE_DIR, 'galaxy_trial/templates')
 )
 
 ALLOWED_HOSTS = []
