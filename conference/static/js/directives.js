@@ -63,8 +63,15 @@ webrtc.directive("groupVideo", function ($rootScope) {
                     return id;
             }
 
-            var htmlText = '<div><label>' + getGroupName(attrs.videoId) + '</label></div>';
-            element.append(htmlText);
+            $scope.timeout(function() {
+                var htmlText = '<div><label>' + getGroupName(attrs.videoId) + '</label></div>';
+                element.append(htmlText);
+
+                var fontSize = $('.vid').width() / 12;
+                $('group-video label')
+                    .css('font-size', String(fontSize) + 'px')
+                    .css('padding', String(fontSize / 4) + 'px');
+            });
 
             console.log("Initialize video (ElementId:" + attrs.id + ' participantId:' + attrs.videoId);
 
