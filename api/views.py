@@ -26,13 +26,7 @@ class Participants(BaseAPIView):
 
 class Presets(BaseAPIView):
     def get(self, request):
-        participants = User.objects.filter(groups__name='participant')
         result = {
-            'presets': [{
-                'id': 1,
-                'size': 1,
-                'groups': [dict(id=participant.username)
-                           for participant in participants]
-            }]
+            'presets': []
         }
         return result
