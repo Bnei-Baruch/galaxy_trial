@@ -128,8 +128,11 @@ h1 {
 	height: 25px;
 }
 
+group-video {
+    position: relative;
+}
+
 group-video label {
-    position: absolute;
 	color: #fff;
 	background: #00f;
 	font-size: 2.5vw;
@@ -138,5 +141,6 @@ group-video label {
     font-weight: bold;
 	padding: 0.6vw;
     right: 0;
+    position: absolute;
     z-index: 1;
 }
