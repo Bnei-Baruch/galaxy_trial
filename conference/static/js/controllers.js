@@ -248,6 +248,9 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
 
         var nuveToken = $('body').data('nuve-token');
 
+        // Monkey-patching Erizo player to disable control bar display
+        Erizo.Bar = function () {};
+
         $rootScope.room = Erizo.Room({token: nuveToken});
 
         $rootScope.participantElementIDs = {};
