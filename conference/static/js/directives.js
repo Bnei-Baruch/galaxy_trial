@@ -64,7 +64,7 @@ webrtc.directive("groupVideo", function ($rootScope) {
             }
 
             $scope.timeout(function() {
-                var htmlText = '<div class="group-label-container"><label>' + getGroupName(attrs.videoId) + '</label></div>';
+                var htmlText = '<div><label>' + getGroupName(attrs.videoId) + '</label></div>';
                 element.append(htmlText);
             });
 
