@@ -138,6 +138,7 @@ group-video {
 }
 
 group-video label {
+        min-width: 50%;
 	color: #fff;
 	background: #00f;
 	font-size: 2.5vw;
