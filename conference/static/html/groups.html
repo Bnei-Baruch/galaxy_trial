@@ -1,18 +1,25 @@
 <div class="title">Groups</div>
 <div class="view">
-	<div ng-repeat="group in conectedGroups" 
+	<div ng-repeat="group in groupList | filter: isGroupConnected" 
 		 ng-class="{ 'selected': group == selectedGroup }"
          ng-click="groupClicked(group)"
          class="group">
 		<img src='/static/images/connected.png' />
-		{{group.name}}
+		{{ group.name }}
 	</div>
-	<div ng-repeat="group in groupList | filter: isGroupDisconected" 
+	<div ng-repeat="group in groupList | filter: isGroupConnecting" 
+		 ng-class="{ 'selected': group == selectedGroup }"
+		 ng-click="groupClicked(group)"
+		 class="group">
+		<img src='/static/images/connecting.gif' />
+		{{ group.name }}
+	</div>
+	<div ng-repeat="group in groupList | filter: isGroupDisconnected" 
 		 ng-class="{ 'selected': group == selectedGroup }"
 		 ng-click="groupClicked(group)"
 		 class="group">
 		<img src='/static/images/disconnected.png' />
-		{{group.name}}
+		{{ group.name }}
 	</div>
 </div>
 <div class="bar">

@@ -121,14 +121,6 @@ function previewCtrl ($scope, $rootScope) {
         }
         return false;
     }
-
-    $scope.isGroupConected = function(group) {
-        for (var i=0; i < $scope.conectedGroups.length; i++)
-            if ($scope.conectedGroups[i].id == group.id)
-                return true;
-        return false;
-    }
-
 }
 previewCtrl.$inject = ["$scope","$rootScope"];
 
@@ -196,7 +188,6 @@ presetsCtrl.$inject = ["$scope","$rootScope", "GetPresets"];
 
 function groupsCtrl ($scope, $rootScope, GetGroups) {
     $scope.selectedGroup = null;
-    $scope.conectedGroups = [];
     $scope.groupList = [];
     $rootScope.groupHash = {};
 
@@ -209,40 +200,44 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
             $rootScope.$broadcast('showGroupPreview', group);
     };
 
-    var getGroupName = function(id) {
+    var getGroupName = function (id) {
         if (id in $rootScope.groupHash)
             return $rootScope.groupHash[id].name;
         else
             return id;
     }
 
-    var pushConnectedGroup = function (participantID) {
+    var setGroupState = function (participantID, state) {
         var group = $rootScope.groupHash[participantID];
-        $scope.conectedGroups.push(group);
+        group.state = state;
         $scope.$apply();
     }
 
-    var removeConnectedGroup = function (participantID) {
-        var group = $rootScope.groupHash[participantID];
-        $scope.conectedGroups.splice($scope.conectedGroups.indexOf(group), 1);
-        $scope.$apply();
+    var addConnectingGroup = function (stream) {
+        var attrs = stream.getAttributes();
+        if (attrs.role == 'participant') {
+            setGroupState(attrs.participantID, 'connecting');
+            $rootScope.room.subscribe(stream);
+        }
     }
 
-    $scope.isGroupConected = function(group) {
-        for (var i=0; i < $scope.conectedGroups.length; i++)
-            if ($scope.conectedGroups[i].id == group.id)
-                return true;
-        return false;
+    $scope.isGroupConnected = function(group) {
+        return group.state == 'connected';
     }
 
-    $scope.isGroupDisconected = function(group) {
-        return !($scope.isGroupConected(group));
+    $scope.isGroupConnecting = function(group) {
+        return group.state == 'connecting';
     }
-    
+
+    $scope.isGroupDisconnected = function(group) {
+        return group.state == 'disconnected';
+    }
+
     GetGroups.then(function (data) {
         $scope.groupList = data.data.groups;
         for (var i=0; i < $scope.groupList.length; i++) {
             var group = $scope.groupList[i];
+            group.state = 'disconnected';
             $rootScope.groupHash[group.id] = group;
         }
 
@@ -251,30 +246,36 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
         // Monkey-patching Erizo player to disable control bar display
         Erizo.Bar = function () {};
 
+        // Stream to send messages to participants
+        var dataStream = Erizo.Stream({
+            data: true,
+            attributes: {role: 'initiator'},
+        });
+
         $rootScope.room = Erizo.Room({token: nuveToken});
 
         $rootScope.participantElementIDs = {};
 
         $rootScope.room.addEventListener('room-connected', function (roomEvent) {
-            for (var index in roomEvent.streams) {
-                var stream = roomEvent.streams[index];
-                pushConnectedGroup(stream.getAttributes().participantID);
-            }   
+            for (var index in roomEvent.streams)
+                addConnectingGroup(roomEvent.streams[index]);
+            $rootScope.room.publish(dataStream);
         });
 
         $rootScope.room.addEventListener('stream-subscribed', function(streamEvent) {
             var participantID = streamEvent.stream.getAttributes().participantID;
-            var elementID = $rootScope.participantElementIDs[participantID];
-            streamEvent.stream.show(elementID, {speaker: false});
+            setGroupState(participantID, 'connected');
+//            var elementID = $rootScope.participantElementIDs[participantID];
+//            streamEvent.stream.show(elementID, {speaker: false});
         });
 
         $rootScope.room.addEventListener('stream-added', function (streamEvent) {
-            pushConnectedGroup(streamEvent.stream.getAttributes().participantID);
+            addConnectingGroup(streamEvent.stream);
         });
 
         $rootScope.room.addEventListener('stream-removed', function (streamEvent) {
             var participantID = streamEvent.stream.getAttributes().participantID;
-            removeConnectedGroup(participantID);
+            setGroupState(participantID, 'disconnected');
         });
 
         $rootScope.room.connect();
