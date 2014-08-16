@@ -63,28 +63,43 @@ webrtc.directive("groupVideo", function ($rootScope) {
                     return id;
             }
 
-            $scope.timeout(function() {
-                var htmlText = '<div><label>' + getGroupName(attrs.videoId) + '</label></div>';
-                element.append(htmlText);
+            var showStream = function (stream, containerID) {
+                var participantID = stream.getAttributes().participantID;
 
-                var fontSize = $('.vid').width() / 12;
-                $('group-video label')
-                    .css('font-size', String(fontSize) + 'px')
-                    .css('padding', String(fontSize / 4) + 'px');
-            });
+                $rootScope.dataStream.sendData({
+                    action: 'unhold',
+                    participantID: participantID
+                });
+                stream.show(containerID, {speaker: false});
+            };
 
-            console.log("Initialize video (ElementId:" + attrs.id + ' participantId:' + attrs.videoId);
+            var hideStream = function (stream) {
+                var participantID = stream.getAttributes().participantID;
 
-            $rootScope.participantElementIDs[attrs.videoId] = attrs.id;
+                $rootScope.dataStream.sendData({
+                    action: 'hold',
+                    participantID: participantID
+                });
+                stream.hide();
+            };
 
-            var streams = $rootScope.room.getStreamsByAttribute('participantID', attrs.videoId);
+            if ($rootScope.groupHash[attrs.videoId].state == 'connected') {
+                console.log("Initialize video (ElementId:" + attrs.id + ' participantId:' + attrs.videoId);
 
-            if (!isGroupOnMonitor(attrs.videoId)) {
-                $rootScope.room.subscribe(streams[0]);
-                streams[0].play();
-            } else {
+                var streams = $rootScope.room.getStreamsByAttribute('participantID', attrs.videoId);
+
                 $scope.timeout(function() {
-                    streams[0].show(attrs.id, {speaker: false});
+                    var htmlText = '<div><label>' + getGroupName(attrs.videoId) + '</label></div>';
+                    element.append(htmlText);
+
+                    var fontSize = $('.vid').width() / 12;
+
+                    $('group-video label')
+                        .css('font-size', String(fontSize) + 'px')
+                        .css('padding', String(fontSize / 4) + 'px');
+
+                    showStream(streams[0], attrs.id);
+
                 });
             }
 
@@ -95,8 +110,7 @@ webrtc.directive("groupVideo", function ($rootScope) {
                 }
                 console.log("Destroy video (ElementId:" + attrs.id + ' participantId:' + attrs.videoId);
                 var streams = $rootScope.room.getStreamsByAttribute('participantID', attrs.videoId);
-                if (streams != null && streams[0] != null)
-                    $rootScope.room.unsubscribe(streams[0]);
+                if (streams && streams[0]) hideStream(streams[0]);
             });          
         }
     };

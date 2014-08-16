@@ -48,8 +48,8 @@ $(function () {
 
                 stream.addEventListener('stream-data', function (e) {
                     console.log("Got message: ", e.msg);
-                    if (e.msg.participantID == participantID)
-                    videoTrack.enabled = (e.msg.action == 'unhold');
+                    if (e.msg.participantID == settings.participantId)
+                        videoTrack.enabled = (e.msg.action == 'unhold');
                 });
             }
         }

@@ -86,9 +86,9 @@ function previewCtrl ($scope, $rootScope) {
                 console.log('Destroy video on monitor ' + monitorNumber + ' ( participantId:' + groupId + ')');
                 var streams = $rootScope.room.getStreamsByAttribute('participantID', groupId);
                 if (streams != null && streams[0] != null) {
-                    $rootScope.room.unsubscribe(streams[0]);
+                    $rootScope.dataStream.sendData({action: 'hold', participantID: groupId});
                 }
-                $rootScope.monitorGroups[monitorNumber][groupId]=false;
+                $rootScope.monitorGroups[monitorNumber][groupId] = false;
             }
         }
 
@@ -247,26 +247,22 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
         Erizo.Bar = function () {};
 
         // Stream to send messages to participants
-        var dataStream = Erizo.Stream({
+        $rootScope.dataStream = Erizo.Stream({
             data: true,
             attributes: {role: 'initiator'},
         });
 
         $rootScope.room = Erizo.Room({token: nuveToken});
 
-        $rootScope.participantElementIDs = {};
-
         $rootScope.room.addEventListener('room-connected', function (roomEvent) {
             for (var index in roomEvent.streams)
                 addConnectingGroup(roomEvent.streams[index]);
-            $rootScope.room.publish(dataStream);
+            $rootScope.room.publish($rootScope.dataStream);
         });
 
         $rootScope.room.addEventListener('stream-subscribed', function(streamEvent) {
             var participantID = streamEvent.stream.getAttributes().participantID;
             setGroupState(participantID, 'connected');
-//            var elementID = $rootScope.participantElementIDs[participantID];
-//            streamEvent.stream.show(elementID, {speaker: false});
         });
 
         $rootScope.room.addEventListener('stream-added', function (streamEvent) {
@@ -278,6 +274,7 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
             setGroupState(participantID, 'disconnected');
         });
 
+        $rootScope.dataStream.init();
         $rootScope.room.connect();
 
     }); 
