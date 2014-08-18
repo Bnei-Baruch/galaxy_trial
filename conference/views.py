@@ -38,3 +38,10 @@ def participant(request):
                                     'participant')
     context = dict(nuve_token=token)
     return render(request, 'participant.html', context)
+
+
+@login_required
+@user_passes_test(is_member_of('broadcaster'))
+def broadcaster(request):
+    token = nuve_client.createToken(room['_id'], 'broadcaster', 'broadcaster')
+    return render(request, 'broadcaster.html', dict(nuve_token=token))
