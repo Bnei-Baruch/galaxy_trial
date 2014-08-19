@@ -101,7 +101,7 @@ img {
 
 hr {
 	border: none;
-	background: url(../../images/bg_hr.png) center center no-repeat;
+	background: url(../images/bg_hr.png) center center no-repeat;
 	height: 10px;
 }
 
@@ -152,7 +152,7 @@ hr {
 }
 
 .mod-download {
-	background: url(../../images/bg_download.png) 0 0.75em no-repeat;
+	background: url(../images/bg_download.png) 0 0.75em no-repeat;
 	background-size: 100%;
 }
 
