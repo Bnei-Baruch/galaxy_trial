@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.views import redirect_to_login
+from django.contrib.auth.decorators import login_required
 
 from conference import nuve
 
@@ -18,30 +19,30 @@ else:
     room = rooms[0]
 
 
-def is_member_of(group_name):
-    return lambda user: user.groups.filter(name=group_name).exists()
+def _get_role_page(request, role_name, user_name=None):
+    """Creates a Nuve token and returns a page specific for the given role.
+    """
+
+    if request.user.groups.filter(name=role_name).exists():
+        token = nuve_client.createToken(
+            room['_id'], user_name or role_name, role_name)
+        context = dict(nuve_token=token)
+        response = render(request, '{}.html'.format(role_name), context)
+    else:
+        response = redirect_to_login(request.get_full_path())
+    return response
 
 
 @login_required
-@user_passes_test(is_member_of('initiator'))
 def initiator(request):
-    token = nuve_client.createToken(room['_id'], 'initiator', 'initiator')
-    context = dict(nuve_token=token)
-    return render(request, 'initiator.html', context)
+    return _get_role_page(request, 'initiator')
 
 
 @login_required
-@user_passes_test(is_member_of('participant'))
 def participant(request):
-    token = nuve_client.createToken(room['_id'],
-                                    request.user.username,
-                                    'participant')
-    context = dict(nuve_token=token)
-    return render(request, 'participant.html', context)
+    return _get_role_page(request, 'participant', request.user.username)
 
 
 @login_required
-@user_passes_test(is_member_of('broadcaster'))
 def broadcaster(request):
-    token = nuve_client.createToken(room['_id'], 'broadcaster', 'broadcaster')
-    return render(request, 'broadcaster.html', dict(nuve_token=token))
+    return _get_role_page(request, 'broadcaster')

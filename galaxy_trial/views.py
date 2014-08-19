@@ -7,7 +7,7 @@ def index(request):
     """Redirects users based on whether they are in the admins group.
     """
 
-    if request.user.groups.filter(name='initiator').exists():
-        return redirect('initiator')
-    else:
-        return redirect('participant')
+    for group_name in ('initiator', 'broadcaster'):
+        if request.user.groups.filter(name=group_name).exists():
+            return redirect(group_name)
+    return redirect('participant')

@@ -1,0 +1,21 @@
+{% load i18n %}
+
+<div class="container">
+    <div class="header">
+        <ul class="nav nav-pills pull-right">
+            <li>
+            <div class="btn-group">
+                {% if user.is_authenticated %}
+                <button id="js-camera-control" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    {{ user.get_full_name }} <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" role="menu">
+                    <li><a id="js-logout-control" href="{% url 'logout' %}">{% trans "Logout" %}</a></li>
+                </ul>
+                {% endif %}
+            </div>
+            </li>
+        </ul>
+        <h3 class="text-muted">Galaxy</h3>
+    </div>
+</div>

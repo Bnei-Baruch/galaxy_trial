@@ -1,1 +1,26 @@
-[{"pk": 1, "fields": {"permissions": [], "name": "initiator"}, "model": "auth.group"}, {"pk": 2, "fields": {"permissions": [], "name": "participant"}, "model": "auth.group"}]
+[
+{
+    "model": "auth.group",
+    "fields": {
+        "name": "initiator",
+        "permissions": []
+    },
+    "pk": 1
+},
+{
+    "model": "auth.group",
+    "fields": {
+        "name": "broadcaster",
+        "permissions": []
+    },
+    "pk": 2
+},
+{
+    "model": "auth.group",
+    "fields": {
+        "name": "participant",
+        "permissions": []
+    },
+    "pk": 3
+}
+]

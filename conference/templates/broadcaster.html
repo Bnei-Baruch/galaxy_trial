@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% load i18n staticfiles %}
+
+{% block head %}
+<script src="{% static 'js/vendor/erizo.js' %}"></script>
+<script src="{% static 'js/broadcaster.js' %}"></script>
+{% endblock%}
+
+{% block content %}
+<h1>{% trans "Broadcaster" %}</h1>
+
+<div class="panel panel-default">
+    <div class="panel-heading">{% trans "Local video stream" %}</div>
+    <div class="panel-body">
+        <div id="js-local-video" style="width: 640px; height: 480px;"></div>
+    </div>
+</div>
+
+<div class="hide" data-token="{{ nuve_token }}" id="js-nuve-data"></div>
+{% endblock %}
