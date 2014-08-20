@@ -19,8 +19,15 @@
     </div>
 </div>
 
-<button id="js-play-remote-button" class="btn btn-primary btn-lg" disabled>{% trans "Play remote stream" %}</button>
-<!--<button id="js-disconnect-button" class="btn btn-danger btn-lg">{% trans "Disconnect" %}</button>-->
+<button id="js-play-remote-button"
+    class="btn btn-primary btn-lg"
+    data-loading-text="{% trans "Waiting for remote stream..." %}"
+    disabled>
+    {% trans "Play remote stream" %}
+</button>
+
+<div id="js-remote-video" class="hide">
+</div>
 
 <div id="js-settings"
     data-nuve-token="{{ nuve_token }}"

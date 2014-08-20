@@ -12,7 +12,9 @@ $(function () {
     // Monkey-patching Erizo player to disable control bar display
     Erizo.Bar = function () {this.display = this.hide = function () {}};
 
-    var remoteStream, videoTrack;
+    var remoteStream;
+    var videoTrack;
+    var remoteStreamPopup;
 
     var broadcastingStream = Erizo.Stream({
         audio: false,
@@ -46,12 +48,39 @@ $(function () {
         processNewStreams([streamEvent.stream]);
     });
 
+    room.addEventListener('stream-subscribed', function (streamEvent) {
+        var role = streamEvent.stream.getAttributes().role;
+        if (role == 'broadcaster') {
+            playButton.button('reset');
+
+            window.setTimeout(function() {
+                playButton.prop('disabled', true);
+            }, 0)
+
+            streamEvent.stream.play('js-remote-video');
+
+            var remoteVideoHTML = $('#js-remote-video').html();
+            remoteStreamPopup.document.write(remoteVideoHTML);
+
+            $(remoteStreamPopup).unload(function () {
+                streamEvent.stream.stop('js-remote-video');
+                room.unsubscribe(streamEvent.stream);
+                playButton.prop('disabled', false);
+            });
+
+            playButton.prop('disabled', true);
+        }
+    });
+
     room.addEventListener('stream-removed', function (streamEvent) {
         var role = streamEvent.stream.getAttributes().role;
     });
 
     playButton.click(function () {
-        window.open();
+        remoteStreamPopup = window.open(undefined, undefined, 'width=1024,height=768');
+        remoteStreamPopup.document.write("<title>Remote stream</title>");
+        room.subscribe(remoteStream);
+        playButton.button('loading');
     });
 
     function processNewStreams(streams) {
