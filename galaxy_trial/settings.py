@@ -117,9 +117,9 @@ LOGIN_REDIRECT_VIEW = 'galaxy_trial:index'
 # Nuve
 
 NUVE_CONFIG = {
-    'service': '53d6ff0759b33ce5110670d8',
-    'key': '31026',
-    'url': 'licode.socio2.net',
+    'service': '53d8535f0f795a55a47beeac',
+    'key': '4890',
+    'url': 'galaxy-trial.socio2.net',
     'port': 3000,
 }
 

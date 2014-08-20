@@ -1,47 +1,30 @@
-<!DOCTYPE html>{% load i18n staticfiles %}
-<html>
-<head>
-    <meta charset="utf-8" />
-    <title>{% trans "Participant page" %}</title>
-    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon" />
-    <meta name="description" content="" />
-    <meta name="keywords" content="" />
-    <link rel="stylesheet" href="{% static 'css/cssreset-min.css' %}">
-    <!-- Simple Grid -->
-    <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7; IE=EmulateIE9" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <link rel="stylesheet" href="{% static 'SimpleGrid/css/base.css' %}" type="text/css" media="all" />
-    <!--[if lt IE 9 ]><link rel="stylesheet" href="SimpleGrid/css/720_grid.css" type="text/css" /><![endif]-->
-    <link rel="stylesheet" href="{% static 'SimpleGrid/css/720_grid.css' %}" type="text/css" media="screen and (min-width: 720px)" />
-    <link rel="stylesheet" href="{% static 'SimpleGrid/css/986_grid.css' %}" type="text/css" media="screen and (min-width: 986px)" />
-    <link rel="stylesheet" href="{% static 'SimpleGrid/css/1236_grid.css' %}" media="screen and (min-width: 1236px)" />
-    <link rel="stylesheet" href="{% static 'css/main.css' %}" />
+{% extends "base.html" %}
 
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-    <script src="{% static 'js/vendor/erizo.js' %}"></script>
-    <script src="{% static 'js/participant.js' %}"></script>
-</head>
-<body data-nuve-token="{{ nuve_token }}" data-participant-id="{{ request.user.username }}">
-    <div class="container">	
-        <header class="banner-wrap">
-            <div class="banner">
-                <a href="{% url 'logout' %}">Logout</a>
-                <h1 id="logo">Participant Page for {{ request.user.get_full_name }}</h1>
-            </div>
-        </header>
-        <div class="grid">
-            <div class="row">
-                <div class="slot-6">&nbsp;</div>
-                <div class="slot-7-8">
-                    <div class="title">Local video stream</div>
-                    <div id="js-local-video" class="view preview">
-                    </div>
-                </div>
-                <div class="slot-9">&nbsp;</div>
-            </div>
-        </div>
-        <footer id="footer" class="row footer">
-        </footer>
+{% load i18n staticfiles %}
+
+{% block head %}
+<script src="{% static 'js/vendor/erizo.js' %}"></script>
+<script src="{% static 'js/participant.js' %}"></script>
+{% endblock%}
+
+{% block content %}
+<h1>{% trans "Participant" %}</h1>
+
+<div class="alert alert-danger" id="js-status-container" role="alert" style="display: none;"></div>
+
+<div class="panel panel-default">
+    <div class="panel-heading">{% trans "Local video stream" %}</div>
+    <div class="panel-body">
+        <div id="js-local-video" style="width: 640px; height: 480px;"></div>
     </div>
-</body>
-</html>
+</div>
+
+<button id="js-play-remote-button" class="btn btn-primary btn-lg" disabled>{% trans "Play remote stream" %}</button>
+<!--<button id="js-disconnect-button" class="btn btn-danger btn-lg">{% trans "Disconnect" %}</button>-->
+
+<div id="js-settings"
+    data-nuve-token="{{ nuve_token }}"
+    data-participant-id="{{ request.user.username }}"
+    class="hide">
+</div>
+{% endblock %}
