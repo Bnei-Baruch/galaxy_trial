@@ -1,7 +1,8 @@
 <div class="title">Preview</div>
 <div id="preview" class="view preview">
 	<div ng-repeat="group in previewList | filter: isGroupConnected" 
-		 class="{{'vid vid_' + previewList.length}}">
+		 class="{{'vid vid_' + previewList.length}}"
+		 id="{{'vid_' + ($index+1) + '_container'}}">
 		<group-video id="{{'vid_' + ($index+1) }}"
 				     video-id="{{group.id}}">
 		</group-video>
