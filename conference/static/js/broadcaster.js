@@ -8,7 +8,7 @@ $(function () {
     var nuveData = $('#js-nuve-data').data();
 
     // Monkey-patching Erizo player to disable control bar display
-    Erizo.Bar = function () {this.display = this.hide = function () {}};
+    Erizo.Bar = function () {this.display = this.hide = function () {};};
 
     localStream = Erizo.Stream({
         audio: true,

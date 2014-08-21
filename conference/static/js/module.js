@@ -2,7 +2,7 @@ var webrtc = angular.module('webrtc', ['ngRoute', 'pascalprecht.translate']);
 
 webrtc.run(function($rootScope) {
     $rootScope.test = new Date();
-})
+});
 
 webrtc.config(['$translateProvider', function ($translateProvider) {
     $translateProvider
@@ -18,5 +18,5 @@ webrtc.config(function($routeProvider) {
         .when('/',{
             templateUrl: "./index.html",
             //controller
-        })
+        });
 });

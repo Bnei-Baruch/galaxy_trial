@@ -1,5 +1,7 @@
 /*jshint indent:4, strict:true*/
 function onLoadCtrl ($scope, $rootScope, $translate) {
+    "use strict";
+
     $rootScope.monitorNumber = 2;
     $rootScope.monitorGroups = {};
     $rootScope.monitors = {};
@@ -14,9 +16,9 @@ function onLoadCtrl ($scope, $rootScope, $translate) {
         for (var i=1; i<=$rootScope.monitorNumber; i++) {
             if(event.which === (i+48)) {
                 $rootScope.$broadcast('transferPreviewToMonitor', i);
-            } 
+            }
         }
-    }
+    };
 
     $scope.keyUp = function(event){
         if(event.which === 17){ //ctrl
@@ -25,7 +27,7 @@ function onLoadCtrl ($scope, $rootScope, $translate) {
         if(event.which === 18){ //alt
             $rootScope.altDown = false;   
         }
-    }
+    };
 
     var addMonitor = function(number) {
         if (number in $rootScope.monitors) {
@@ -35,7 +37,7 @@ function onLoadCtrl ($scope, $rootScope, $translate) {
         var monitor = window.open("/static/html/monitor.html");
         $rootScope.monitors[number] = monitor;
         $rootScope.monitorGroups[number] = {};
-    }
+    };
 
     for (var i=1; i<=$rootScope.monitorNumber; i++)
         addMonitor(i);
@@ -48,9 +50,10 @@ function onLoadCtrl ($scope, $rootScope, $translate) {
 onLoadCtrl.$inject = ["$scope", "$rootScope", "$translate"];
 
 function onLoadMonitorCtrl ($scope, $rootScope, $translate) {
+    "use strict";
     $scope.test = function() {
         //alert('test');
-    }
+    };
 }
 onLoadMonitorCtrl.$inject = ["$scope", "$rootScope", "$translate"];
 
@@ -67,6 +70,8 @@ function bodyCtrl ($scope, $rootScope) {
 bodyCtrl.$inject = ["$scope","$rootScope"];
 
 function previewCtrl ($scope, $rootScope) {
+    "use strict";
+
     $scope.previewList = [];
 
     $scope.previewHtml = '';
@@ -87,7 +92,7 @@ function previewCtrl ($scope, $rootScope) {
             if (!isGroupOnOtherMonitor(monitorNumber, groupId) && !isGroupOnPreview(groupId)) {
                 console.log('Destroy video on monitor ' + monitorNumber + ' ( participantId:' + groupId + ')');
                 var streams = $rootScope.room.getStreamsByAttribute('participantID', groupId);
-                if (streams != null && streams[0] != null) {
+                if (streams !== null && streams[0] !== null) {
                     $rootScope.dataStream.sendData({action: 'hold', participantID: groupId});
                 }
                 $rootScope.monitorGroups[monitorNumber][groupId] = false;
@@ -110,18 +115,18 @@ function previewCtrl ($scope, $rootScope) {
         var size = String(videoElement.height() / 11) + 'pt';
         labelElement.css('font-size', size)
                     .css('line-height', size);
-    }
+    };
 
     var getMonitor = function(number) {
         return $rootScope.monitors[number];
-    }
+    };
     var isGroupOnOtherMonitor = function(monitorNumber,groupId) {
         for (var i=1; i<=$rootScope.monitorNumber; i++) {
-            if (i != monitorNumber && $rootScope.monitorGroups[i][groupId] == true)
+            if (i != monitorNumber && $rootScope.monitorGroups[i][groupId] === true)
                 return true;
             }
         return false;
-    }
+    };
     var isGroupOnPreview = function(groupId) {
         for (var i=0;i<$scope.previewList.length;i++) {
             var group = $scope.previewList[i];
@@ -129,47 +134,49 @@ function previewCtrl ($scope, $rootScope) {
                 return true;
         }
         return false;
-    }
+    };
 }
 previewCtrl.$inject = ["$scope","$rootScope"];
 
 function presetsCtrl ($scope,$rootScope,GetPresets) {
+    "use strict";
+
     $scope.presets = [];
     $scope.presetIndex = 0;
 
     $scope.addPreset = function() {
         $scope.presets.push({groups:[], size:1});
         $scope.presetIndex = $scope.presets.length-1;
-    }
+    };
 
     $scope.presetClicked = function (index) {
         if ($rootScope.ctrlDown)
         {
             var selectedPreset = $scope.selectedPreset();
-            if (selectedPreset.groups.length == 0)
+            if (selectedPreset.groups.length === 0)
                 $scope.presets.splice(index, 1);
             return;
         }
         $scope.presetIndex = index;
         $rootScope.$broadcast('showPresetPreview', $scope.selectedPreset());
-    }
+    };
 
     $scope.removeGroup = function (preset, group) {
         if (!$rootScope.ctrlDown)
             return;   
-        if (preset != null) {
+        if (preset !== null) {
             var curGroupIndex = preset.groups.indexOf(group);
             if (curGroupIndex != -1)
                 preset.groups.splice(curGroupIndex, 1);
         }
         $rootScope.$broadcast('videoResize');
-    }
+    };
 
     $scope.$on("addGroupToPreset", function (e, group) {
-        if ($scope.presets.length == 0)
+        if ($scope.presets.length === 0)
         $scope.addPreset();
         var curPreset = $scope.selectedPreset();
-        if (curPreset != null)
+        if (curPreset !== null)
         {
             var curGroupIndex = curPreset.groups.indexOf(group);
             if (curGroupIndex == -1)
@@ -182,14 +189,14 @@ function presetsCtrl ($scope,$rootScope,GetPresets) {
     $scope.selectedPreset = function()
     {
         return $scope.presets[$scope.presetIndex];
-    }
+    };
 
     $scope.getGroupName = function(id) {
         if (id in $rootScope.groupHash)
             return $rootScope.groupHash[id].name;
         else
             return id;
-    }
+    };
 
     GetPresets.then(function (data) {
         $scope.presets = data.data.presets;
@@ -198,13 +205,15 @@ function presetsCtrl ($scope,$rootScope,GetPresets) {
 presetsCtrl.$inject = ["$scope","$rootScope", "GetPresets"];
 
 function groupsCtrl ($scope, $rootScope, GetGroups) {
+    "use strict";
+
     $scope.selectedGroup = null;
     $scope.groupList = [];
     $rootScope.groupHash = {};
 
     $scope.groupClicked = function (group) {
         $scope.selectedGroup = group;
-        if (group == null) return;
+        if (group === null) return;
         if ($rootScope.ctrlDown)       
             $rootScope.$broadcast('addGroupToPreset', group);
         else
@@ -216,13 +225,13 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
             return $rootScope.groupHash[id].name;
         else
             return id;
-    }
+    };
 
     var setGroupState = function (participantID, state) {
         var group = $rootScope.groupHash[participantID];
         group.state = state;
         $scope.$apply();
-    }
+    };
 
     var addConnectingGroup = function (stream) {
         var attrs = stream.getAttributes();
@@ -230,19 +239,19 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
             setGroupState(attrs.participantID, 'connecting');
             $rootScope.room.subscribe(stream);
         }
-    }
+    };
 
     $scope.isGroupConnected = function(group) {
         return group.state == 'connected';
-    }
+    };
 
     $scope.isGroupConnecting = function(group) {
         return group.state == 'connecting';
-    }
+    };
 
     $scope.isGroupDisconnected = function(group) {
         return group.state == 'disconnected';
-    }
+    };
 
     GetGroups.then(function (data) {
         $scope.groupList = data.data.groups;
@@ -255,7 +264,7 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
         var nuveToken = $('body').data('nuve-token');
 
         // Monkey-patching Erizo player to disable control bar display
-        Erizo.Bar = function () {this.display = this.hide = function () {}};
+        Erizo.Bar = function () {this.display = this.hide = function () {};};
 
         // Stream to send messages to participants
         $rootScope.dataStream = Erizo.Stream({
@@ -296,6 +305,7 @@ groupsCtrl.$inject = ["$scope","$rootScope","GetGroups"];
 
 
 function groupVideoCtrl ($scope, $rootScope, $timeout) {
+    "use strict";
     $scope.videoId = '';
     $scope.timeout = $timeout;
 }

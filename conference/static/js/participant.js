@@ -1,7 +1,6 @@
 /*jshint indent:4, strict:true*/
 
 var room;
-var remoteStream;
 
 $(function () {
     "use strict";
@@ -14,6 +13,7 @@ $(function () {
     Erizo.Bar = function () {this.display = this.hide = function () {};};
 
     var videoTrack;
+    var remoteStream;
     var remoteStreamPopup;
     var subscribedToRemoteStream = false;
 
