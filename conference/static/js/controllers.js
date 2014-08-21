@@ -73,10 +73,12 @@ function previewCtrl ($scope, $rootScope) {
     $scope.showTitle = false;
     $scope.$on("showGroupPreview", function (e, group) {
         $scope.previewList = [group];
+        $rootScope.$broadcast('videoResize');
         //$scope.$apply();
     });
     $scope.$on("showPresetPreview", function (e, preset) {
         $scope.previewList = preset.groups;
+        $rootScope.$broadcast('videoResize');
         //$scope.$apply();
     });
     $scope.$on("transferPreviewToMonitor", function (e, monitorNumber) {
@@ -101,8 +103,15 @@ function previewCtrl ($scope, $rootScope) {
         // Transfer preview to monitor
         var monitor = getMonitor(monitorNumber);
         var previewHtml = $('#preview').clone()[0].outerHTML;
-        monitor.showPreview(previewHtml);
+        monitor.showPreview(previewHtml, $rootScope.resizeVideoLabel);
     });
+
+    $rootScope.resizeVideoLabel = function(videoElement, labelElement) {
+        var size = String(videoElement.height() / 11) + 'pt';
+        labelElement.css('font-size', size)
+                    .css('line-height', size);
+    }
+
     var getMonitor = function(number) {
         return $rootScope.monitors[number];
     }
@@ -115,9 +124,9 @@ function previewCtrl ($scope, $rootScope) {
     }
     var isGroupOnPreview = function(groupId) {
         for (var i=0;i<$scope.previewList.length;i++) {
-        	var group = $scope.previewList[i];
-        	if (group.id == groupId)
-        		return true;
+            var group = $scope.previewList[i];
+            if (group.id == groupId)
+                return true;
         }
         return false;
     }
@@ -153,20 +162,22 @@ function presetsCtrl ($scope,$rootScope,GetPresets) {
             if (curGroupIndex != -1)
                 preset.groups.splice(curGroupIndex, 1);
         }
+        $rootScope.$broadcast('videoResize');
     }
 
     $scope.$on("addGroupToPreset", function (e, group) {
         if ($scope.presets.length == 0)
         $scope.addPreset();
-    var curPreset = $scope.selectedPreset();
-    if (curPreset != null)
-    {
-        var curGroupIndex = curPreset.groups.indexOf(group);
-        if (curGroupIndex == -1)
-        curPreset.groups.push(group);
-    /*else
-      curPreset.splice(curGroupIndex, 1);*/
-    }
+        var curPreset = $scope.selectedPreset();
+        if (curPreset != null)
+        {
+            var curGroupIndex = curPreset.groups.indexOf(group);
+            if (curGroupIndex == -1)
+            curPreset.groups.push(group);
+        /*else
+          curPreset.splice(curGroupIndex, 1);*/
+        }
+        $rootScope.$broadcast('videoResize');
     });
     $scope.selectedPreset = function()
     {

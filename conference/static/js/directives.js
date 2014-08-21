@@ -91,15 +91,16 @@ webrtc.directive("groupVideo", function ($rootScope) {
                 $scope.timeout(function() {
                     var htmlText = '<div><label>' + getGroupName(attrs.videoId) + '</label></div>';
                     element.append(htmlText);
-
-                    var fontSize = $('.vid').width() / 12;
-
-                    $('group-video label')
-                        .css('font-size', String(fontSize) + 'px')
-                        .css('padding', String(fontSize / 4) + 'px');
-
+                    var videoId = attrs.id + '_container';
+                    var videoElement = $('#'+videoId);
+                    var labelElement = $('label', videoElement);
+                    $rootScope.resizeVideoLabel(videoElement, labelElement);
                     showStream(streams[0], attrs.id);
-
+                    $scope.$on("videoResize", function (e, preset) {
+                        $scope.timeout(function() {
+                            $rootScope.resizeVideoLabel(videoElement, labelElement);
+                        });
+                    });
                 });
             }
 
