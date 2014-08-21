@@ -145,7 +145,7 @@ group-video label {
     text-align: center;
     text-transform: uppercase;
     font-weight: bold;
-	padding: 0px;
+	padding: 1vw;
     right: 0;
     position: absolute;
     z-index: 1;
