@@ -1,6 +1,7 @@
 /*jshint indent:4, strict:true*/
 
 var room;
+var remoteStream;
 
 $(function () {
     "use strict";
@@ -12,9 +13,9 @@ $(function () {
     // Monkey-patching Erizo player to disable control bar display
     Erizo.Bar = function () {this.display = this.hide = function () {}};
 
-    var remoteStream;
     var videoTrack;
     var remoteStreamPopup;
+    var subscribedToRemoteStream = false;
 
     var broadcastingStream = Erizo.Stream({
         audio: false,
@@ -24,7 +25,7 @@ $(function () {
         videoSize: [640, 480, 640, 480]
     }); 
 
-    var room = Erizo.Room({token: settings.nuveToken});
+    room = Erizo.Room({token: settings.nuveToken});
 
     broadcastingStream.addEventListener('access-accepted', function () {
         room.connect();
@@ -52,35 +53,66 @@ $(function () {
         var role = streamEvent.stream.getAttributes().role;
         if (role == 'broadcaster') {
             playButton.button('reset');
+            subscribedToRemoteStream = true;
 
-            window.setTimeout(function() {
+            if (remoteStreamPopup) {
+                window.setTimeout(function() {
+                    playButton.prop('disabled', true);
+                }, 0)
+
+                streamEvent.stream.play('js-remote-video');
+                $('#js-remote-video video').get(0).volume = 0.;
+
+                var remoteVideoHTML = $('#js-remote-video').html();
+                remoteStreamPopup.document.body.innerHTML = remoteVideoHTML;
+
                 playButton.prop('disabled', true);
-            }, 0)
-
-            streamEvent.stream.play('js-remote-video');
-
-            var remoteVideoHTML = $('#js-remote-video').html();
-            remoteStreamPopup.document.write(remoteVideoHTML);
-
-            $(remoteStreamPopup).unload(function () {
-                streamEvent.stream.stop('js-remote-video');
+            } else {
                 room.unsubscribe(streamEvent.stream);
-                playButton.prop('disabled', false);
-            });
-
-            playButton.prop('disabled', true);
+            }
         }
+    });
+
+    room.addEventListener('stream-unsubscribed', function (streamEvent) {
+        var role = streamEvent.stream.getAttributes().role;
+        if (role == 'broadcaster')
+            subscribedToRemoteStream = false;
     });
 
     room.addEventListener('stream-removed', function (streamEvent) {
         var role = streamEvent.stream.getAttributes().role;
+
+        if (role == 'broadcaster') {
+            playButton.prop('disabled', true);
+            streamEvent.stream.stop('js-remote-video');
+            subscribedToRemoteStream = false;
+        }
     });
 
     playButton.click(function () {
         remoteStreamPopup = window.open(undefined, undefined, 'width=1024,height=768');
         remoteStreamPopup.document.write("<title>Remote stream</title>");
+        remoteStreamPopup.document.write("<body style='background: black; margin: 0;'></body>");
+
+        $(remoteStreamPopup).unload(function () {
+            remoteStream.stop('js-remote-video');
+            if (subscribedToRemoteStream)
+                room.unsubscribe(remoteStream);
+
+            var broadcasters = room.getStreamsByAttribute('role', 'broadcaster');
+            if (broadcasters.length)
+                playButton.prop('disabled', false);
+            remoteStreamPopup = undefined;
+        });
+
+
         room.subscribe(remoteStream);
         playButton.button('loading');
+    });
+
+    $(window).unload(function () {
+        if (remoteStreamPopup)
+            remoteStreamPopup.close();
     });
 
     function processNewStreams(streams) {
@@ -100,7 +132,10 @@ $(function () {
                     break;
                 case 'broadcaster':
                     remoteStream = stream;
-                    playButton.prop('disabled', false);
+                    if (remoteStreamPopup)
+                        room.subscribe(remoteStream);
+                    else
+                        playButton.prop('disabled', false);
                     break;
             }
         }
