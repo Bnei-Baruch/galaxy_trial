@@ -89,12 +89,11 @@ webrtc.directive("groupVideo", function ($rootScope) {
                 var streams = $rootScope.room.getStreamsByAttribute('participantID', attrs.videoId);
 
                 $scope.timeout(function() {
-                    var labelId = 'label_' + attrs.id;
-                    var htmlText = '<div><label id="' + labelId + '">' + getGroupName(attrs.videoId) + '</label></div>';
+                    var htmlText = '<div><label>' + getGroupName(attrs.videoId) + '</label></div>';
                     element.append(htmlText);
                     var videoId = attrs.id + '_container';
-                    var labelElement = $('#'+labelId);
                     var videoElement = $('#'+videoId);
+                    var labelElement = $('label', videoElement);
                     $rootScope.resizeVideoLabel(videoElement, labelElement);
                     showStream(streams[0], attrs.id);
                     $scope.$on("videoResize", function (e, preset) {
