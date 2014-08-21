@@ -2,6 +2,7 @@ from django.conf import settings
 from django.shortcuts import render
 from django.contrib.auth.views import redirect_to_login
 from django.contrib.auth.decorators import login_required
+from django.utils.cache import add_never_cache_headers
 
 from conference import nuve
 
@@ -28,6 +29,7 @@ def _get_role_page(request, role_name, user_name=None):
             room['_id'], user_name or role_name, role_name)
         context = dict(nuve_token=token)
         response = render(request, '{}.html'.format(role_name), context)
+        add_never_cache_headers(response)
     else:
         response = redirect_to_login(request.get_full_path())
     return response

@@ -11,7 +11,7 @@ $(function () {
     var settings = $('#js-settings').data();
 
     // Monkey-patching Erizo player to disable control bar display
-    Erizo.Bar = function () {this.display = this.hide = function () {}};
+    Erizo.Bar = function () {this.display = this.hide = function () {};};
 
     var videoTrack;
     var remoteStreamPopup;
@@ -58,10 +58,10 @@ $(function () {
             if (remoteStreamPopup) {
                 window.setTimeout(function() {
                     playButton.prop('disabled', true);
-                }, 0)
+                }, 0);
 
                 streamEvent.stream.play('js-remote-video');
-                $('#js-remote-video video').get(0).volume = 0.;
+                $('#js-remote-video video').get(0).volume = 0.0;
 
                 var remoteVideoHTML = $('#js-remote-video').html();
                 remoteStreamPopup.document.body.innerHTML = remoteVideoHTML;
@@ -83,7 +83,10 @@ $(function () {
         var role = streamEvent.stream.getAttributes().role;
 
         if (role == 'broadcaster') {
-            playButton.prop('disabled', true);
+            playButton.button('reset');
+            window.setTimeout(function() {
+                playButton.prop('disabled', true);
+            }, 0);
             streamEvent.stream.stop('js-remote-video');
             subscribedToRemoteStream = false;
         }
@@ -96,8 +99,11 @@ $(function () {
 
         $(remoteStreamPopup).unload(function () {
             remoteStream.stop('js-remote-video');
-            if (subscribedToRemoteStream)
+
+            if (subscribedToRemoteStream) {
                 room.unsubscribe(remoteStream);
+                subscribedToRemoteStream = false;
+            }
 
             var broadcasters = room.getStreamsByAttribute('role', 'broadcaster');
             if (broadcasters.length)
