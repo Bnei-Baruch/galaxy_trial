@@ -106,9 +106,24 @@ body {
 	height:50%
 }
 
-.vid_5, .vid_6, .vid_7, .vid_8, .vid_9, .vid_10, .vid_11, .vid_12, .vid_13, .vid_14, .vid_15, .vid_16 {
+.vid_5, .vid_6, .vid_7, .vid_8, .vid_9 {
+	width:33%;
+	height:33%
+}
+
+.vid_10, .vid_11, .vid_12, .vid_13, .vid_14, .vid_15, .vid_16 {
 	width:25%;
-	height:25%
+	height:25%;
+}
+
+.vid_10, .vid_11, .vid_12, .vid_13, .vid_14, .vid_15, .vid_16 {
+	width:25%;
+	height:25%;
+}
+
+.vid_17, .vid_18, .vid_19, .vid_20, .vid_21, .vid_22, .vid_23, .vid_24, .vid_25 {
+	width:20%;
+	height:20%;
 }
 
 h1 {
@@ -138,14 +153,12 @@ group-video {
 }
 
 group-video label {
-        min-width: 50%;
+    min-width: 50%;
 	color: #fff;
 	background: #00f;
 	font-size: 2.5vw;
     text-align: center;
-    text-transform: uppercase;
-    font-weight: bold;
-	padding: 0.6vw;
+	padding: 0;
     right: 0;
     position: absolute;
     z-index: 1;
