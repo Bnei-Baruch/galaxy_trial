@@ -94,7 +94,7 @@ $(function () {
 
     playButton.click(function () {
         remoteStreamPopup = window.open(undefined, undefined, 'width=1024,height=768');
-        remoteStreamPopup.document.write("<title>Remote stream</title>");
+        remoteStreamPopup.document.write("<title>" + settings.popupTitle + "</title>");
         remoteStreamPopup.document.write("<body style='background: black; margin: 0;'></body>");
 
         $(remoteStreamPopup).unload(function () {
