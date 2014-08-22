@@ -14,7 +14,7 @@ $(function () {
         audio: true,
         video: true,
         attributes: {role: 'broadcaster'},
-        videoSize: [640, 480, 640, 480]
+        videoSize: [720, 576, 720, 576]
     }); 
 
     var room = Erizo.Room({token: nuveData.token});
