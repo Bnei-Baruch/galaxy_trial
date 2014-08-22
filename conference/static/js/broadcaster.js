@@ -5,10 +5,7 @@ var room, localStream;
 $(function () {
     "use strict";
 
-    var nuveData = $('#js-nuve-data').data();
-
-    // Monkey-patching Erizo player to disable control bar display
-    Erizo.Bar = function () {this.display = this.hide = function () {};};
+    var settings = $('#js-settings').data();
 
     localStream = Erizo.Stream({
         audio: true,
@@ -17,7 +14,7 @@ $(function () {
         videoSize: [720, 576, 720, 576]
     }); 
 
-    var room = Erizo.Room({token: nuveData.token});
+    var room = Erizo.Room({token: settings.nuveToken});
 
     localStream.addEventListener('access-accepted', function () {
         room.connect();

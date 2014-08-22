@@ -5,12 +5,9 @@ var room;
 $(function () {
     "use strict";
 
-    var playButton = $('#js-play-remote-button');
-
     var settings = $('#js-settings').data();
 
-    // Monkey-patching Erizo player to disable control bar display
-    Erizo.Bar = function () {this.display = this.hide = function () {};};
+    var playButton = $('#js-play-remote-button');
 
     var videoTrack;
     var remoteStream;
@@ -129,12 +126,7 @@ $(function () {
             switch (role) {
                 case 'initiator':
                     room.subscribe(stream);
-
-                    stream.addEventListener('stream-data', function (e) {
-                        console.log("Got message: ", e.msg);
-                        if (e.msg.participantID == settings.participantId)
-                        videoTrack.enabled = (e.msg.action == 'unhold');
-                    });
+                    stream.addEventListener('stream-data', onDataMessage);
                     break;
                 case 'broadcaster':
                     remoteStream = stream;
@@ -145,6 +137,12 @@ $(function () {
                     break;
             }
         }
+    }
+
+    function onDataMessage(e) {
+        console.log("Got message: ", e.msg);
+        if (e.msg.participantID == settings.participantId)
+            videoTrack.enabled = (e.msg.action == 'unhold');
     }
 
     broadcastingStream.init();

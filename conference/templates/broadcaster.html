@@ -4,6 +4,7 @@
 
 {% block head %}
 <script src="{% static 'js/vendor/erizo.js' %}"></script>
+<script src="{% static 'js/disable-erizo-bar.js' %}"></script>
 <script src="{% static 'js/broadcaster.js' %}"></script>
 {% endblock%}
 
@@ -17,5 +18,5 @@
     </div>
 </div>
 
-<div class="hide" data-token="{{ nuve_token }}" id="js-nuve-data"></div>
+<div id="js-settings" data-nuve-token="{{ nuve_token }}" class="hide"></div>
 {% endblock %}
