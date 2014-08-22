@@ -1,20 +1,20 @@
 <div class="title">Groups</div>
 <div class="view">
-	<div ng-repeat="group in groupList | filter: isGroupConnected" 
+	<div ng-repeat="group in groupList | filter: isGroupConnected | orderBy : 'name'" 
 		 ng-class="{ 'selected': group == selectedGroup }"
          ng-click="groupClicked(group)"
          class="group">
 		<img src='/static/images/connected.png' />
 		{{ group.name }}
 	</div>
-	<div ng-repeat="group in groupList | filter: isGroupConnecting" 
+	<div ng-repeat="group in groupList | filter: isGroupConnecting | orderBy : 'name'" 
 		 ng-class="{ 'selected': group == selectedGroup }"
 		 ng-click="groupClicked(group)"
 		 class="group">
 		<img src='/static/images/connecting.gif' />
 		{{ group.name }}
 	</div>
-	<div ng-repeat="group in groupList | filter: isGroupDisconnected" 
+	<div ng-repeat="group in groupList | filter: isGroupDisconnected | orderBy : 'name'" 
 		 ng-class="{ 'selected': group == selectedGroup }"
 		 ng-click="groupClicked(group)"
 		 class="group">

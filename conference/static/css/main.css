@@ -13,7 +13,7 @@ body {
 	background:#eee;
 	border-top-right-radius: 5px;
 	border-top-left-radius: 5px;
-	height: 426px;
+	height: 75vh;
 	overflow-y: auto;	
 }
 
@@ -21,6 +21,7 @@ body {
 	overflow-y: inherit;	
 	background: #777;
 	border-radius: 0px;
+	height: 426px;
 }
 
 .monitor {
