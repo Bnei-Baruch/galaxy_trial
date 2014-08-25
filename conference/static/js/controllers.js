@@ -112,9 +112,11 @@ function previewCtrl ($scope, $rootScope) {
     });
 
     $rootScope.resizeVideoLabel = function(videoElement, labelElement) {
-        var size = String(videoElement.height() / 11) + 'pt';
-        labelElement.css('font-size', size)
-                    .css('line-height', size);
+        var size = videoElement.height() / 11;
+        if (size < 20) size = 20;
+        var cssSize = String(size) + 'pt';
+        labelElement.css('font-size', cssSize)
+                    .css('line-height', cssSize);
     };
 
     var getMonitor = function(number) {
