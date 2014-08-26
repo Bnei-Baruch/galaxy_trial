@@ -1,4 +1,5 @@
-/*jshint indent:4, strict:true*/
+/*jshint curly:true, indent:4, strict:true*/
+
 function onLoadCtrl ($scope, $rootScope, $translate) {
     "use strict";
 

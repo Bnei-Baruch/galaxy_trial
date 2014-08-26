@@ -1,4 +1,4 @@
-/*jshint indent:4, strict:true*/
+/*jshint curly:true, indent:4, strict:true*/
 
 var room, localStream;
 

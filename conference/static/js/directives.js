@@ -1,3 +1,5 @@
+/*jshint curly:true, indent:4, strict:true*/
+
 webrtc.directive("onload", function () {
     return {
         scope: {},
