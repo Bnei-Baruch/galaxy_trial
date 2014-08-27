@@ -47,7 +47,7 @@ $(function () {
         // Holding the stream before publishing by disabling the video track
         videoTrack.enabled = false;
 
-        room.publish(streamToBroadcast, {maxVideoBW: 450});
+        room.publish(streamToBroadcast, {maxVideoBW: 1000});
         processNewStreams(roomEvent.streams);
     }); 
 
