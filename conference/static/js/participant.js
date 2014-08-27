@@ -12,9 +12,13 @@ $(function () {
     var videoTrack;
     var remoteStream;
     var remoteStreamPopup;
+
+    // Call room.unsubscribe() only if subscribed to remote stream
     var subscribedToRemoteStream = false;
 
-    var broadcastingStream = Erizo.Stream({
+    // Actual stream we broadcast, it's not used to display the video locally
+    // in order to not to confuse the user with blinking video when holding/unholding
+    var streamToBroadcast = Erizo.Stream({
         audio: false,
         video: true,
         data: false,
@@ -24,21 +28,26 @@ $(function () {
 
     room = Erizo.Room({token: settings.nuveToken});
 
-    broadcastingStream.addEventListener('access-accepted', function () {
+    // Camera access granted by user
+    streamToBroadcast.addEventListener('access-accepted', function () {
         room.connect();
 
         var localStream = Erizo.Stream({
-            stream: broadcastingStream.stream.clone(),
+            stream: streamToBroadcast.stream.clone(),
             video: true,
         });
 
         localStream.show('js-local-video', {speaker: false});
     }); 
 
+    // Connected to a Licode room
     room.addEventListener('room-connected', function (roomEvent) {
-        videoTrack = broadcastingStream.stream.getVideoTracks()[0];
+        videoTrack = streamToBroadcast.stream.getVideoTracks()[0];
+
+        // Holding the stream before publishing by disabling the video track
         videoTrack.enabled = false;
-        room.publish(broadcastingStream, {maxVideoBW: 450});
+
+        room.publish(streamToBroadcast, {maxVideoBW: 450});
         processNewStreams(roomEvent.streams);
     }); 
 
@@ -72,8 +81,9 @@ $(function () {
 
     room.addEventListener('stream-unsubscribed', function (streamEvent) {
         var role = streamEvent.stream.getAttributes().role;
-        if (role == 'broadcaster')
+        if (role == 'broadcaster') {
             subscribedToRemoteStream = false;
+        }
     });
 
     room.addEventListener('stream-removed', function (streamEvent) {
@@ -103,8 +113,9 @@ $(function () {
             }
 
             var broadcasters = room.getStreamsByAttribute('role', 'broadcaster');
-            if (broadcasters.length)
+            if (broadcasters.length) {
                 playButton.prop('disabled', false);
+            }
             remoteStreamPopup = undefined;
         });
 
@@ -114,8 +125,9 @@ $(function () {
     });
 
     $(window).unload(function () {
-        if (remoteStreamPopup)
+        if (remoteStreamPopup) {
             remoteStreamPopup.close();
+        }
     });
 
     function processNewStreams(streams) {
@@ -130,10 +142,11 @@ $(function () {
                     break;
                 case 'broadcaster':
                     remoteStream = stream;
-                    if (remoteStreamPopup)
+                    if (remoteStreamPopup) {
                         room.subscribe(remoteStream);
-                    else
+                    } else {
                         playButton.prop('disabled', false);
+                    }
                     break;
             }
         }
@@ -141,9 +154,10 @@ $(function () {
 
     function onDataMessage(e) {
         console.log("Got message: ", e.msg);
-        if (e.msg.participantID == settings.participantId)
+        if (e.msg.participantID == settings.participantId) {
             videoTrack.enabled = (e.msg.action == 'unhold');
+        }
     }
 
-    broadcastingStream.init();
+    streamToBroadcast.init();
 });
