@@ -230,7 +230,6 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
 
     var setGroupState = function (participantID, state) {
         var group = $rootScope.groupHash[participantID];
-        console.log(participantID, $rootScope.groupHash);
         group.state = state;
         $scope.$apply();
     };
