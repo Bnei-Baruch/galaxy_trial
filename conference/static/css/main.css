@@ -31,7 +31,7 @@ body {
 }
 
 .title{
-	color:#0000cc;
+	color:#00c;
 	text-align: center;
 }
 
@@ -65,7 +65,7 @@ body {
 }
 
 .preset_group:hover {
-	color:#00c;
+	color: #00c;
 }
 
 .group {
@@ -74,7 +74,8 @@ body {
 }
 
 .group:hover {
-	color:#00c;
+	background: #fff;
+	border-radius: 5px;
 }
 
 .group img {
@@ -162,4 +163,7 @@ group-video label {
     right: 0;
     position: absolute;
     z-index: 1;
+}
+.group-in-preset {
+	color:#00f;
 }

@@ -200,6 +200,16 @@ function presetsCtrl ($scope,$rootScope,GetPresets) {
             return id;
     };
 
+    $rootScope.isGroupInPresets = function(group) {
+        for (var i=0; i<$scope.presets.length;i++) {
+            var preset = $scope.presets[i];
+            if (preset.groups != null && 
+                preset.groups.indexOf(group) > -1)
+                return true;
+        }
+        return false;
+    }
+
     GetPresets.then(function (data) {
         $scope.presets = data.data.presets;
     }); 
@@ -300,7 +310,10 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
         $rootScope.room.connect();
 
     }); 
-
+    
+    $scope.isGroupInPresets = function(group) {
+        return $rootScope.isGroupInPresets(group);
+    }
 
 }
 groupsCtrl.$inject = ["$scope","$rootScope","GetGroups"];
