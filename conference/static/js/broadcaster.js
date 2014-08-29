@@ -22,7 +22,7 @@ $(function () {
     }); 
 
     room.addEventListener('room-connected', function (roomEvent) {
-        room.publish(localStream, {maxVideoBW: 3000});
+        room.publish(localStream, {maxVideoBW: 2000});
     }); 
 
     localStream.init();
