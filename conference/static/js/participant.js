@@ -66,7 +66,7 @@ handlers = {
 
         broadcastedVideoTrack = streamToBroadcast.stream.getVideoTracks()[0];
         broadcastedVideoTrack.enabled = false;
-        room.publish(streamToBroadcast, {maxVideoBW: 450});
+        room.publish(streamToBroadcast, {maxVideoBW: 1000});
         _processNewStreams(roomEvent.streams);
     },
     onStreamAdded: function (streamEvent) {
