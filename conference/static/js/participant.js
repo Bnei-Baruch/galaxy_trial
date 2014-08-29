@@ -1,24 +1,28 @@
 /*jshint curly:true, indent:4, strict:true*/
 
-var room;
+var settings, room, handlers, streamToBroadcast,
+    broadcastedVideoTrack, remoteStream, remoteStreamPopup, playButton;
+
+// Can be undefined, 'added' or 'subscribed'
+var remoteStreamState;
 
 $(function () {
     "use strict";
 
-    var settings = $('#js-settings').data();
+    settings = $('#js-settings').data();
 
-    var playButton = $('#js-play-remote-button');
+    streamToBroadcast = createStreamToBroadcast();
 
-    var videoTrack;
-    var remoteStream;
-    var remoteStreamPopup;
+    initErizoRoom();
+    bindDOMEvents();
 
-    // Call room.unsubscribe() only if subscribed to remote stream
-    var subscribedToRemoteStream = false;
+    streamToBroadcast.init();
+});
 
-    // Actual stream we broadcast, it's not used to display the video locally
-    // in order to not to confuse the user with blinking video when holding/unholding
-    var streamToBroadcast = Erizo.Stream({
+function createStreamToBroadcast() {
+    "use strict";
+
+    var stream = Erizo.Stream({
         audio: false,
         video: true,
         data: false,
@@ -26,10 +30,28 @@ $(function () {
         videoSize: [640, 480, 640, 480]
     }); 
 
-    room = Erizo.Room({token: settings.nuveToken});
+    stream.addEventListener('access-accepted', handlers.onCameraAccessAccepted);
 
-    // Camera access granted by user
-    streamToBroadcast.addEventListener('access-accepted', function () {
+    return stream;
+}
+
+function initErizoRoom() {
+    "use strict";
+
+    room = Erizo.Room({token: settings.nuveToken});
+    
+    room.addEventListener('room-connected', handlers.onRoomConnected);
+    room.addEventListener('stream-added', handlers.onStreamAdded);
+    room.addEventListener('stream-subscribed', handlers.onStreamSubscribed);
+    room.addEventListener('stream-unsubscribed', handlers.onStreamUnsubscribed);
+    room.addEventListener('stream-removed', handlers.onStreamRemoved);
+}
+
+handlers = {
+    /* Connects to a Licode room and displays local stream */
+    onCameraAccessAccepted: function () {
+        "use strict";
+
         room.connect();
 
         var localStream = Erizo.Stream({
@@ -38,88 +60,69 @@ $(function () {
         });
 
         localStream.show('js-local-video', {speaker: false});
-    }); 
+    },
+    onRoomConnected: function (roomEvent) {
+        "use strict";
 
-    // Connected to a Licode room
-    room.addEventListener('room-connected', function (roomEvent) {
-        videoTrack = streamToBroadcast.stream.getVideoTracks()[0];
-
-        // Holding the stream before publishing by disabling the video track
-        videoTrack.enabled = false;
-
+        broadcastedVideoTrack = streamToBroadcast.stream.getVideoTracks()[0];
+        broadcastedVideoTrack.enabled = false;
         room.publish(streamToBroadcast, {maxVideoBW: 450});
-        processNewStreams(roomEvent.streams);
-    }); 
+        _processNewStreams(roomEvent.streams);
+    },
+    onStreamAdded: function (streamEvent) {
+        "use strict";
+        _processNewStreams([streamEvent.stream]);
+    },
+    onStreamSubscribed: function (streamEvent) {
+        "use strict";
 
-    room.addEventListener('stream-added', function (streamEvent) {
-        processNewStreams([streamEvent.stream]);
-    });
+        var stream = streamEvent.stream;
 
-    room.addEventListener('stream-subscribed', function (streamEvent) {
-        var role = streamEvent.stream.getAttributes().role;
-        if (role == 'broadcaster') {
+        if (_isBroadcasterStream(stream)) {
             playButton.button('reset');
-            subscribedToRemoteStream = true;
+            remoteStreamState = 'subscribed';
 
             if (remoteStreamPopup) {
-                window.setTimeout(function() {
-                    playButton.prop('disabled', true);
-                }, 0);
-
-                streamEvent.stream.play('js-remote-video');
-                $('#js-remote-video video').get(0).volume = 0.0;
-
-                var remoteVideoHTML = $('#js-remote-video').html();
-                remoteStreamPopup.document.body.innerHTML = remoteVideoHTML;
-
-                playButton.prop('disabled', true);
+                _showRemoteStream(stream);
             } else {
-                room.unsubscribe(streamEvent.stream);
+                room.unsubscribe(stream);
             }
         }
-    });
+    },
+    onStreamUnsubscribed: function (streamEvent) {
+        "use strict";
 
-    room.addEventListener('stream-unsubscribed', function (streamEvent) {
-        var role = streamEvent.stream.getAttributes().role;
-        if (role == 'broadcaster') {
-            subscribedToRemoteStream = false;
+        if (_isBroadcasterStream(streamEvent.stream)) {
+            remoteStreamState = 'added';
         }
-    });
+    },
+    onStreamRemoved: function (streamEvent) {
+        "use strict";
 
-    room.addEventListener('stream-removed', function (streamEvent) {
-        var role = streamEvent.stream.getAttributes().role;
-
-        if (role == 'broadcaster') {
-            playButton.button('reset');
-            window.setTimeout(function() {
-                playButton.prop('disabled', true);
-            }, 0);
-            streamEvent.stream.stop('js-remote-video');
-            subscribedToRemoteStream = false;
+        var stream = streamEvent.stream;
+        if (_isBroadcasterStream(stream)) {
+            _hideRemoteStream(stream);
+            remoteStreamState = undefined;
         }
-    });
+    },
+    /* Holds or unholds broadcaster stream */
+    onDataStreamMessage: function(e) {
+        "use strict";
+
+        console.log("Got message: ", e.msg);
+        if (e.msg.participantID == settings.participantId) {
+            broadcastedVideoTrack.enabled = (e.msg.action == 'unhold');
+        }
+    }
+};
+
+function bindDOMEvents() {
+    "use strict";
+
+    playButton = $('#js-play-remote-button');
 
     playButton.click(function () {
-        remoteStreamPopup = window.open(undefined, undefined, 'width=1024,height=768');
-        remoteStreamPopup.document.write("<title>" + settings.popupTitle + "</title>");
-        remoteStreamPopup.document.write("<body style='background: black; margin: 0;'></body>");
-
-        $(remoteStreamPopup).unload(function () {
-            remoteStream.stop('js-remote-video');
-
-            if (subscribedToRemoteStream) {
-                room.unsubscribe(remoteStream);
-                subscribedToRemoteStream = false;
-            }
-
-            var broadcasters = room.getStreamsByAttribute('role', 'broadcaster');
-            if (broadcasters.length) {
-                playButton.prop('disabled', false);
-            }
-            remoteStreamPopup = undefined;
-        });
-
-
+        _createPopup();
         room.subscribe(remoteStream);
         playButton.button('loading');
     });
@@ -130,34 +133,86 @@ $(function () {
         }
     });
 
-    function processNewStreams(streams) {
-        for (var index in streams) {
-            var stream = streams[index];
-            var role = stream.getAttributes().role;
+}
 
-            switch (role) {
-                case 'initiator':
-                    room.subscribe(stream);
-                    stream.addEventListener('stream-data', onDataMessage);
-                    break;
-                case 'broadcaster':
-                    remoteStream = stream;
-                    if (remoteStreamPopup) {
-                        room.subscribe(remoteStream);
-                    } else {
-                        playButton.prop('disabled', false);
-                    }
-                    break;
-            }
+function _createPopup() {
+    "use strict";
+
+    remoteStreamPopup = window.open(undefined, undefined, 'width=1024,height=768');
+    remoteStreamPopup.document.write("<title>" + settings.popupTitle + "</title>");
+    remoteStreamPopup.document.write("<body style='background: #777; margin: 0;'></body>");
+
+    _bindPopupEvents();
+}
+
+function _bindPopupEvents() {
+    "use strict";
+
+    $(remoteStreamPopup).unload(function () {
+        remoteStream.stop('js-remote-video');
+
+        if (remoteStreamState !== undefined) {
+            playButton.prop('disabled', false);
+        }
+
+        if (remoteStreamState == 'subscribed') {
+            room.unsubscribe(remoteStream);
+            remoteStreamState = 'added';
+        }
+        remoteStreamPopup = undefined;
+    });
+}
+
+function _processNewStreams(streams) {
+    "use strict";
+
+    for (var index in streams) {
+        var stream = streams[index];
+
+        switch (stream.getAttributes().role) {
+            case 'initiator':
+                room.subscribe(stream);
+                stream.addEventListener('stream-data', handlers.onDataStreamMessage);
+                break;
+            case 'broadcaster':
+                remoteStream = stream;
+                if (remoteStreamPopup) {
+                    room.subscribe(remoteStream);
+                } else {
+                    playButton.prop('disabled', false);
+                }
+                break;
         }
     }
+}
 
-    function onDataMessage(e) {
-        console.log("Got message: ", e.msg);
-        if (e.msg.participantID == settings.participantId) {
-            videoTrack.enabled = (e.msg.action == 'unhold');
-        }
-    }
+function _showRemoteStream(stream) {
+    "use strict";
 
-    streamToBroadcast.init();
-});
+    _disablePlayButton();
+
+    stream.play('js-remote-video');
+    $('#js-remote-video video').get(0).volume = 0.0;
+
+    var remoteVideoHTML = $('#js-remote-video').html();
+    remoteStreamPopup.document.body.innerHTML = remoteVideoHTML;
+}
+
+function _hideRemoteStream(stream) {
+    "use strict";
+    playButton.button('reset');
+    _disablePlayButton();
+    stream.stop('js-remote-video');
+}
+
+function _disablePlayButton() {
+    "use strict";
+    window.setTimeout(function() {
+        playButton.prop('disabled', true);
+    }, 0);
+}
+
+function _isBroadcasterStream(stream) {
+    "use strict";
+    return stream.getAttributes().role == 'broadcaster';
+}
