@@ -112,8 +112,11 @@ function previewCtrl ($scope, $rootScope) {
     });
 
     $rootScope.resizeVideoLabel = function(videoElement, labelElement) {
+        var container = videoElement.parent();
         var size = videoElement.height() / 11;
-        if (size < 20) size = 20;
+        if (size < 20 &&
+            container!=null && container.width() >= 800) 
+            size = 20;
         var cssSize = String(size) + 'pt';
         labelElement.css('font-size', cssSize)
                     .css('line-height', cssSize);
