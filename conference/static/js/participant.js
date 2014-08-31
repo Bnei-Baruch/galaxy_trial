@@ -1,5 +1,7 @@
 /*jshint curly:true, indent:4, strict:true*/
 
+/* TODO: I18N */
+
 // Page settings taken from DOM
 var settings;
 
@@ -16,7 +18,7 @@ var streamToBroadcast, remoteStream;
 var broadcastedVideoTrack;
 
 // DOM objects
-var remoteStreamPopup, playButton;
+var remoteStreamPopup, playButton, statusContainer;
 
 // Can be undefined, 'added' or 'subscribed'
 var remoteStreamState;
@@ -47,6 +49,7 @@ function createStreamToBroadcast() {
     }); 
 
     stream.addEventListener('access-accepted', handlers.onCameraAccessAccepted);
+    stream.addEventListener('access-denied', handlers.onCameraAccessDenied);
 
     return stream;
 }
@@ -79,6 +82,12 @@ handlers = {
         });
 
         localStream.show('js-local-video', {speaker: false});
+    },
+    onCameraAccessDenied: function () {
+        "use strict";
+        var message = ("Camera access denied, please accept appropriate camera " +
+                "using the camera icon at the end of the address bar");
+        _showStatusMessage(message, 'danger');
     },
     onRoomConnected: function (roomEvent) {
         "use strict";
@@ -138,6 +147,7 @@ handlers = {
 function bindDOMEvents() {
     "use strict";
 
+    statusContainer = $('#js-status-container');
     playButton = $('#js-play-remote-button');
 
     playButton.click(function () {
@@ -239,16 +249,15 @@ function _isBroadcasterStream(stream) {
 function _showStatusMessage(message, kind) {
     "use strict";
 
-    if (kind == 'danger') {
-        $('body').addClass('alert');
-    } else {
-        $('body').removeClass('alert');
-    }
-    $('#js-status-container').text(message).show();
+    $('body').toggleClass('alert', kind == 'danger');
+    var className = statusContainer.prop('class');
+    var newClassName = className.replace(/\balert-.+?\b/g, 'alert-' + kind);
+    statusContainer.prop('class', newClassName);
+    statusContainer.text(message).show();
 }
 
 function _hideStatusMessage() {
     "use strict";
     $('body').removeClass('alert');
-    $('#js-status-container').hide();
+    statusContainer.hide();
 }

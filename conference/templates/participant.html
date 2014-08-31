@@ -4,7 +4,7 @@
 
 {% block head %}
 <style>
-body .alert {
+body.alert {
     border-left: red solid 50px;
     border-right: red solid 50px;
 }
@@ -17,7 +17,7 @@ body .alert {
 {% block content %}
 <h1>{% trans "Participant" %}</h1>
 
-<div class="alert hide" id="js-status-container" role="alert"></div>
+<div class="alert alert-info" id="js-status-container" role="alert" style="display: none"></div>
 
 <div class="panel panel-default">
     <div class="panel-heading">{% trans "Local video stream" %}</div>
