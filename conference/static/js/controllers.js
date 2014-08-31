@@ -113,9 +113,14 @@ function previewCtrl ($scope, $rootScope) {
     });
 
     $rootScope.resizeVideoLabel = function(videoElement, labelElement) {
-        var size = String(videoElement.height() / 11) + 'pt';
-        labelElement.css('font-size', size)
-                    .css('line-height', size);
+        var container = videoElement.parent();
+        var size = videoElement.height() / 11;
+        if (size < 20 &&
+            container!=null && container.width() >= 800) 
+            size = 20;
+        var cssSize = String(size) + 'pt';
+        labelElement.css('font-size', cssSize)
+                    .css('line-height', cssSize);
     };
 
     var getMonitor = function(number) {
@@ -198,6 +203,16 @@ function presetsCtrl ($scope,$rootScope,GetPresets) {
         else
             return id;
     };
+
+    $rootScope.isGroupInPresets = function(group) {
+        for (var i=0; i<$scope.presets.length;i++) {
+            var preset = $scope.presets[i];
+            if (preset.groups != null && 
+                preset.groups.indexOf(group) > -1)
+                return true;
+        }
+        return false;
+    }
 
     GetPresets.then(function (data) {
         $scope.presets = data.data.presets;
@@ -296,7 +311,10 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
         $rootScope.room.connect();
 
     }); 
-
+    
+    $scope.isGroupInPresets = function(group) {
+        return $rootScope.isGroupInPresets(group);
+    }
 
 }
 groupsCtrl.$inject = ["$scope","$rootScope","GetGroups"];

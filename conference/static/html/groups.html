@@ -1,21 +1,21 @@
 <div class="title">Groups</div>
 <div class="view">
 	<div ng-repeat="group in groupList | filter: isGroupConnected | orderBy : 'name'" 
-		 ng-class="{ 'selected': group == selectedGroup }"
+		 ng-class="{ 'selected': group == selectedGroup, 'group-in-preset': isGroupInPresets(group) }"
          ng-click="groupClicked(group)"
          class="group">
 		<img src='/static/images/connected.png' />
 		{{ group.name }}
 	</div>
 	<div ng-repeat="group in groupList | filter: isGroupConnecting | orderBy : 'name'" 
-		 ng-class="{ 'selected': group == selectedGroup }"
+		 ng-class="{ 'selected': group == selectedGroup, 'group-in-preset': isGroupInPresets(group) }"
 		 ng-click="groupClicked(group)"
 		 class="group">
 		<img src='/static/images/connecting.gif' />
 		{{ group.name }}
 	</div>
 	<div ng-repeat="group in groupList | filter: isGroupDisconnected | orderBy : 'name'" 
-		 ng-class="{ 'selected': group == selectedGroup }"
+		 ng-class="{ 'selected': group == selectedGroup, 'group-in-preset': isGroupInPresets(group) }"
 		 ng-click="groupClicked(group)"
 		 class="group">
 		<img src='/static/images/disconnected.png' />
