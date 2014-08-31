@@ -1,7 +1,22 @@
 /*jshint curly:true, indent:4, strict:true*/
 
-var settings, room, handlers, streamToBroadcast,
-    broadcastedVideoTrack, remoteStream, remoteStreamPopup, playButton;
+// Page settings taken from DOM
+var settings;
+
+// Erizo room object
+var room;
+
+// Licode event handlers
+var handlers;
+
+// Erizo streams
+var streamToBroadcast, remoteStream;
+
+// WebRTC track object for the local stream
+var broadcastedVideoTrack;
+
+// DOM objects
+var remoteStreamPopup, playButton;
 
 // Can be undefined, 'added' or 'subscribed'
 var remoteStreamState;
@@ -47,6 +62,9 @@ function initErizoRoom() {
     room.addEventListener('stream-removed', handlers.onStreamRemoved);
 }
 
+/* Licode event handlers, see the official documentation
+ * http://lynckia.com/licode/client-api.html#events
+*/
 handlers = {
     /* Connects to a Licode room and displays local stream */
     onCameraAccessAccepted: function () {
