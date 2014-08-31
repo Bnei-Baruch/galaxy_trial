@@ -21,6 +21,7 @@ var remoteStreamPopup, playButton;
 // Can be undefined, 'added' or 'subscribed'
 var remoteStreamState;
 
+
 $(function () {
     "use strict";
 
@@ -233,4 +234,21 @@ function _disablePlayButton() {
 function _isBroadcasterStream(stream) {
     "use strict";
     return stream.getAttributes().role == 'broadcaster';
+}
+
+function _showStatusMessage(message, kind) {
+    "use strict";
+
+    if (kind == 'danger') {
+        $('body').addClass('alert');
+    } else {
+        $('body').removeClass('alert');
+    }
+    $('#js-status-container').text(message).show();
+}
+
+function _hideStatusMessage() {
+    "use strict";
+    $('body').removeClass('alert');
+    $('#js-status-container').hide();
 }

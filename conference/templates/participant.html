@@ -3,6 +3,12 @@
 {% load i18n staticfiles %}
 
 {% block head %}
+<style>
+body .alert {
+    border-left: red solid 50px;
+    border-right: red solid 50px;
+}
+</style>
 <script src="{% static 'js/vendor/erizo.js' %}"></script>
 <script src="{% static 'js/disable-erizo-bar.js' %}"></script>
 <script src="{% static 'js/participant.js' %}"></script>
@@ -11,7 +17,7 @@
 {% block content %}
 <h1>{% trans "Participant" %}</h1>
 
-<div class="alert alert-danger" id="js-status-container" role="alert" style="display: none;"></div>
+<div class="alert hide" id="js-status-container" role="alert"></div>
 
 <div class="panel panel-default">
     <div class="panel-heading">{% trans "Local video stream" %}</div>
