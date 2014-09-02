@@ -60,6 +60,7 @@ function initErizoRoom() {
     room = Erizo.Room({token: settings.nuveToken});
     
     room.addEventListener('room-connected', handlers.onRoomConnected);
+    room.addEventListener('room-disconnected', handlers.onRoomDisconnected);
     room.addEventListener('stream-added', handlers.onStreamAdded);
     room.addEventListener('stream-subscribed', handlers.onStreamSubscribed);
     room.addEventListener('stream-unsubscribed', handlers.onStreamUnsubscribed);
@@ -85,8 +86,8 @@ handlers = {
     },
     onCameraAccessDenied: function () {
         "use strict";
-        var message = ("Camera access denied, please accept appropriate camera " +
-                "using the camera icon at the end of the address bar");
+        var message = "Camera access denied, please accept appropriate camera " +
+            "using the camera icon at the end of the address bar";
         _showStatusMessage(message, 'danger');
     },
     onRoomConnected: function (roomEvent) {
@@ -96,6 +97,10 @@ handlers = {
         broadcastedVideoTrack.enabled = false;
         room.publish(streamToBroadcast, {maxVideoBW: 1000});
         _processNewStreams(roomEvent.streams);
+    },
+    onRoomDisconnected: function () {
+        "use strict";
+        _showStatusMessage("Disconnected from the room, reconnecting...", 'danger');
     },
     onStreamAdded: function (streamEvent) {
         "use strict";
