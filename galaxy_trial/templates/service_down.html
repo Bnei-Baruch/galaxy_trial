@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+
+{% block head %}
+<meta http-equiv="refresh" content="10">
+{% endblock %}
+
+{% block content %}
+<h1>{% trans "Service is temporarily unavailable" %}</h1>
+<p>{% blocktrans %}Wait for a while until it is back, the page will be reloaded automatically.
+{% endblocktrans %}</p>
+<p>{% blocktrans %}You may also want to <a href="{{ request.path }}">force the page reload</a>.
+{% endblocktrans %}</p>
+{% endblock %}
