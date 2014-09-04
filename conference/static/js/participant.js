@@ -100,7 +100,9 @@ handlers = {
     },
     onRoomDisconnected: function () {
         "use strict";
-        _showStatusMessage("Disconnected from the room, reconnecting...", 'danger');
+        var message = "Disconnected from the room, reloading in few seconds...";
+        _showStatusMessage(message, 'danger');
+        window.setTimeout(function() {location.reload();}, 10000);
     },
     onStreamAdded: function (streamEvent) {
         "use strict";
@@ -143,9 +145,11 @@ handlers = {
         "use strict";
 
         console.log("Got message: ", e.msg);
-        if (e.msg.participantID == settings.participantId) {
+        if (e.msg.action == 'update-heartbeat') {
+        } else if (e.msg.participantID == settings.participantId) {
             broadcastedVideoTrack.enabled = (e.msg.action == 'unhold');
         }
+
     }
 };
 
