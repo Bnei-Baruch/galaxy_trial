@@ -23,6 +23,9 @@ var remoteStreamPopup, playButton, statusContainer;
 // Can be undefined, 'added' or 'subscribed'
 var remoteStreamState;
 
+// Last received heartbeat time stamp
+var lastHeartbeatReceived;
+
 
 $(function () {
     "use strict";
@@ -77,6 +80,8 @@ handlers = {
 
         room.connect();
 
+        _initHeartbeatListener();
+
         var localStream = Erizo.Stream({
             stream: streamToBroadcast.stream.clone(),
             video: true,
@@ -102,7 +107,6 @@ handlers = {
         "use strict";
         var message = "Disconnected from the room, reloading in few seconds...";
         _showStatusMessage(message, 'danger');
-        window.setTimeout(function() {location.reload();}, 10000);
     },
     onStreamAdded: function (streamEvent) {
         "use strict";
@@ -146,6 +150,7 @@ handlers = {
 
         console.log("Got message: ", e.msg);
         if (e.msg.action == 'update-heartbeat') {
+            lastHeartbeatReceived = Date.now();
         } else if (e.msg.participantID == settings.participantId) {
             broadcastedVideoTrack.enabled = (e.msg.action == 'unhold');
         }
@@ -171,6 +176,23 @@ function bindDOMEvents() {
         }
     });
 
+}
+
+function _initHeartbeatListener() {
+    "use strict";
+
+    lastHeartbeatReceived = Date.now();
+    window.setInterval(_checkHeartbeat, 1000);
+}
+
+function _checkHeartbeat() {
+    "use strict";
+
+    if (Date.now() - lastHeartbeatReceived > 10000) {
+        var message = "Connection with the initiator has been lost, reloading...";
+        _showStatusMessage(message, 'danger');
+        location.reload();
+    }
 }
 
 function _createPopup() {
