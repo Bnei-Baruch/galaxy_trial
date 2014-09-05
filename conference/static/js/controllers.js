@@ -47,7 +47,13 @@ function onLoadCtrl ($scope, $rootScope, $translate) {
             $rootScope.monitors[i].close();   
     };
 }
+
 onLoadCtrl.$inject = ["$scope", "$rootScope", "$translate"];
+function onLoadChatModerator() {
+  loadChatModerator(); 
+}
+
+onLoadChatModerator.$inject = ["$scope"];
 
 function onLoadMonitorCtrl ($scope, $rootScope, $translate) {
     "use strict";

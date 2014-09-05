@@ -5,6 +5,8 @@
 {% block head %}
 <script src="{% static 'js/vendor/erizo.js' %}"></script>
 <script src="{% static 'js/participant.js' %}"></script>
+<script src="{% static 'js/chat.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/chat.css' %}" />
 {% endblock%}
 
 {% block content %}
@@ -32,6 +34,9 @@
 <div id="js-settings"
     data-nuve-token="{{ nuve_token }}"
     data-participant-id="{{ request.user.username }}"
+    data-room-name="{{ nuve_room_name }}"
     class="hide">
 </div>
+
+<div id="js-chat-client"></div>
 {% endblock %}
