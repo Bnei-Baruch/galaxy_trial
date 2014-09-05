@@ -18,13 +18,10 @@ var streamToBroadcast, remoteStream;
 var broadcastedVideoTrack;
 
 // DOM objects
-var remoteStreamPopup, playButton, statusContainer;
+var remoteStreamPopup, playButton;
 
 // Can be undefined, 'added' or 'subscribed'
 var remoteStreamState;
-
-// Last received heartbeat time stamp
-var lastHeartbeatReceived;
 
 
 $(function () {
@@ -80,7 +77,7 @@ handlers = {
 
         room.connect();
 
-        _initHeartbeatListener();
+        initHeartbeatListener();
 
         var localStream = Erizo.Stream({
             stream: streamToBroadcast.stream.clone(),
@@ -93,7 +90,7 @@ handlers = {
         "use strict";
         var message = "Camera access denied, please accept appropriate camera " +
             "using the camera icon at the end of the address bar";
-        _showStatusMessage(message, 'danger');
+        showStatusMessage(message, 'danger');
     },
     onRoomConnected: function (roomEvent) {
         "use strict";
@@ -106,7 +103,7 @@ handlers = {
     onRoomDisconnected: function () {
         "use strict";
         var message = "Disconnected from the room, reloading in few seconds...";
-        _showStatusMessage(message, 'danger');
+        showStatusMessage(message, 'danger');
     },
     onStreamAdded: function (streamEvent) {
         "use strict";
@@ -150,7 +147,7 @@ handlers = {
 
         console.log("Got message: ", e.msg);
         if (e.msg.action == 'update-heartbeat') {
-            lastHeartbeatReceived = Date.now();
+            updateHeartbeat();
         } else if (e.msg.participantID == settings.participantId) {
             broadcastedVideoTrack.enabled = (e.msg.action == 'unhold');
         }
@@ -161,7 +158,6 @@ handlers = {
 function bindDOMEvents() {
     "use strict";
 
-    statusContainer = $('#js-status-container');
     playButton = $('#js-play-remote-button');
 
     playButton.click(function () {
@@ -176,23 +172,6 @@ function bindDOMEvents() {
         }
     });
 
-}
-
-function _initHeartbeatListener() {
-    "use strict";
-
-    lastHeartbeatReceived = Date.now();
-    window.setInterval(_checkHeartbeat, 1000);
-}
-
-function _checkHeartbeat() {
-    "use strict";
-
-    if (Date.now() - lastHeartbeatReceived > 10000) {
-        var message = "Connection with the initiator has been lost, reloading...";
-        _showStatusMessage(message, 'danger');
-        location.reload();
-    }
 }
 
 function _createPopup() {
@@ -275,20 +254,4 @@ function _disablePlayButton() {
 function _isBroadcasterStream(stream) {
     "use strict";
     return stream.getAttributes().role == 'broadcaster';
-}
-
-function _showStatusMessage(message, kind) {
-    "use strict";
-
-    $('body').toggleClass('alert', kind == 'danger');
-    var className = statusContainer.prop('class');
-    var newClassName = className.replace(/\balert-.+?\b/g, 'alert-' + kind);
-    statusContainer.prop('class', newClassName);
-    statusContainer.text(message).show();
-}
-
-function _hideStatusMessage() {
-    "use strict";
-    $('body').removeClass('alert');
-    statusContainer.hide();
 }

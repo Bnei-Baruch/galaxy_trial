@@ -257,8 +257,10 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
 
     var setGroupState = function (participantID, state) {
         var group = $rootScope.groupHash[participantID];
-        group.state = state;
-        $scope.$apply();
+        if (group !== undefined) {
+            group.state = state;
+            $scope.$apply();
+        }
     };
 
     var addConnectingGroup = function (stream) {

@@ -3,14 +3,9 @@
 {% load i18n staticfiles %}
 
 {% block head %}
-<style>
-body.alert {
-    border-left: red solid 50px;
-    border-right: red solid 50px;
-}
-</style>
 <script src="{% static 'js/vendor/erizo.js' %}"></script>
 <script src="{% static 'js/disable-erizo-bar.js' %}"></script>
+<script src="{% static 'js/base-participant.js' %}"></script>
 <script src="{% static 'js/participant.js' %}"></script>
 {% endblock%}
 
