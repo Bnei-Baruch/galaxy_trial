@@ -99,6 +99,15 @@ handlers = {
         broadcastedVideoTrack.enabled = false;
         room.publish(streamToBroadcast, {maxVideoBW: 1000});
         _processNewStreams(roomEvent.streams);
+
+
+        var oldHandler = streamToBroadcast.pc.peerConnection.oniceconnectionstatechange;
+        alert('suke');
+        streamToBroadcast.pc.peerConnection.oniceconnectionstatechange = function (e) {
+            alert('State changed suka');
+            console.log(e);
+            oldHandler(e);
+        };
     },
     onRoomDisconnected: function () {
         "use strict";

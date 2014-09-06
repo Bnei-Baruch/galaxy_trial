@@ -48,6 +48,7 @@ function hideStatusMessage() {
 function _checkHeartbeat() {
     "use strict";
 
+    return;
     if (Date.now() - lastHeartbeatReceived > 10000) {
         var message = "Connection with the initiator has been lost, reloading...";
         showStatusMessage(message, 'danger');
