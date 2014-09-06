@@ -5,9 +5,6 @@
  * TODO: move under RequireJS, http://requirejs.org/
  */
 
-// Last received heartbeat time stamp
-var lastHeartbeatReceived;
-
 // Status alert div
 var statusContainer;
 
@@ -16,6 +13,29 @@ $(function () {
     "use strict";
     statusContainer = $('#js-status-container');
 });
+
+function reloadOnDisconnect(stream) {
+    "use strict";
+
+    var originalHandler = stream.pc.peerConnection.oniceconnectionstatechange;
+    stream.pc.peerConnection.oniceconnectionstatechange = function (e) {
+        if (e.target.iceConnectionState == 'disconnected') {
+            waitAndReload();
+        }
+        originalHandler(e);
+    };
+}
+
+function waitAndReload() {
+    "use strict";
+
+    var message = "Connection lost, retrying in few seconds...";
+    showStatusMessage(message, 'danger');
+
+    window.setTimeout(function () {
+        location.reload();
+    }, 10000);
+}
 
 function showStatusMessage(message, kind) {
     "use strict";
@@ -32,3 +52,4 @@ function hideStatusMessage() {
     $('body').removeClass('alert');
     statusContainer.hide();
 }
+

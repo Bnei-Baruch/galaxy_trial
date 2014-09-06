@@ -75,9 +75,8 @@ handlers = {
     onCameraAccessAccepted: function () {
         "use strict";
 
+        showStatusMessage("Connecting to the server...", 'info');
         room.connect();
-
-        initHeartbeatListener();
 
         var localStream = Erizo.Stream({
             stream: streamToBroadcast.stream.clone(),
@@ -99,20 +98,12 @@ handlers = {
         broadcastedVideoTrack.enabled = false;
         room.publish(streamToBroadcast, {maxVideoBW: 1000});
         _processNewStreams(roomEvent.streams);
-
-
-        var oldHandler = streamToBroadcast.pc.peerConnection.oniceconnectionstatechange;
-        alert('suke');
-        streamToBroadcast.pc.peerConnection.oniceconnectionstatechange = function (e) {
-            alert('State changed suka');
-            console.log(e);
-            oldHandler(e);
-        };
+        reloadOnDisconnect(streamToBroadcast);
+        hideStatusMessage();
     },
     onRoomDisconnected: function () {
         "use strict";
-        var message = "Disconnected from the room, reloading in few seconds...";
-        showStatusMessage(message, 'danger');
+        waitAndReload();
     },
     onStreamAdded: function (streamEvent) {
         "use strict";
@@ -155,9 +146,7 @@ handlers = {
         "use strict";
 
         console.log("Got message: ", e.msg);
-        if (e.msg.action == 'update-heartbeat') {
-            updateHeartbeat();
-        } else if (e.msg.participantID == settings.participantId) {
+        if (e.msg.participantID == settings.participantId) {
             broadcastedVideoTrack.enabled = (e.msg.action == 'unhold');
         }
 
@@ -220,7 +209,6 @@ function _processNewStreams(streams) {
         switch (stream.getAttributes().role) {
             case 'initiator':
                 room.subscribe(stream);
-                stream.addEventListener('stream-data', handlers.onDataStreamMessage);
                 break;
             case 'broadcaster':
                 remoteStream = stream;

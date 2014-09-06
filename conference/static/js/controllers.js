@@ -306,11 +306,11 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
                 addConnectingGroup(roomEvent.streams[index]);
             }
             $rootScope.room.publish($rootScope.dataStream);
+        });
 
-            // Initialize the heartbeat
-            window.setInterval(function () {
-                $rootScope.dataStream.sendData({action: 'update-heartbeat'});
-            }, 5000);
+        $rootScope.room.addEventListener('room-disconnected', function (roomEvent) {
+            alert("Connection to the server lost, press OK to retry...");
+            location.reload();
         });
 
         $rootScope.room.addEventListener('stream-subscribed', function(streamEvent) {

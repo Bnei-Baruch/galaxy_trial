@@ -17,8 +17,8 @@ $(function () {
     room = Erizo.Room({token: settings.nuveToken});
 
     localStream.addEventListener('access-accepted', function () {
+        showStatusMessage("Connecting to the server...", 'info');
         room.connect();
-        initHeartbeatListener();
         localStream.play('js-local-video');
     }); 
 
@@ -30,35 +30,13 @@ $(function () {
 
     room.addEventListener('room-connected', function (roomEvent) {
         room.publish(localStream, {maxVideoBW: 2000});
-        _processNewStreams(roomEvent.streams);
+        reloadOnDisconnect(localStream);
+        hideStatusMessage();
     }); 
 
-    room.addEventListener('stream-added', function (streamEvent) {
-        _processNewStreams([streamEvent.stream]);
-    });
+    room.addEventListener('room-disconnected', function (roomEvent) {
+        waitAndReload();
+    }); 
 
     localStream.init();
 });
-
-function _processNewStreams(streams) {
-    "use strict";
-
-    for (var index in streams) {
-        var stream = streams[index];
-
-        if (stream.getAttributes().role == 'initiator') {
-            console.log("Initiator's stream", stream);
-            room.subscribe(stream);
-            stream.addEventListener('stream-data', _onDataStreamMessage);
-        }
-    }
-}
-
-function _onDataStreamMessage(e) {
-    "use strict";
-
-    console.log("Got message: ", e.msg);
-    if (e.msg.action == 'update-heartbeat') {
-        updateHeartbeat();
-    }
-}
