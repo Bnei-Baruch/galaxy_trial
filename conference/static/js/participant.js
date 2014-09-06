@@ -209,6 +209,7 @@ function _processNewStreams(streams) {
         switch (stream.getAttributes().role) {
             case 'initiator':
                 room.subscribe(stream);
+                stream.addEventListener('stream-data', handlers.onDataStreamMessage);
                 break;
             case 'broadcaster':
                 remoteStream = stream;
