@@ -17,18 +17,6 @@ $(function () {
     statusContainer = $('#js-status-container');
 });
 
-function initHeartbeatListener() {
-    "use strict";
-
-    updateHeartbeat();
-    window.setInterval(_checkHeartbeat, 1000);
-}
-
-function updateHeartbeat() {
-    "use strict";
-    lastHeartbeatReceived = Date.now();
-}
-
 function showStatusMessage(message, kind) {
     "use strict";
 
@@ -43,15 +31,4 @@ function hideStatusMessage() {
     "use strict";
     $('body').removeClass('alert');
     statusContainer.hide();
-}
-
-function _checkHeartbeat() {
-    "use strict";
-
-    return;
-    if (Date.now() - lastHeartbeatReceived > 10000) {
-        var message = "Connection with the initiator has been lost, reloading...";
-        showStatusMessage(message, 'danger');
-        location.reload();
-    }
 }
