@@ -24,6 +24,7 @@ function loadChatModerator() {
         '&auto_approve=true' +
         '&from_text=Shidur' +
         '&name_text=Moderator' +
+        '&alert_on_empty_to=true' +
         '&static_form=true' +
         '"></iframe>');
   }
