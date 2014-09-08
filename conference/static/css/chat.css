@@ -16,6 +16,8 @@
 .cancelBtn { display: none; }
 #askForm #from { display: none; }
 #askForm #name { display: none; }
+#questionsList .fromQ { display: none; }
+#questionsList .timeQ { display: none; }
 h3 { display: none; }
 
 #questionsList .adminDisallow { display: none; }
