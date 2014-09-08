@@ -1,3 +1,5 @@
+/*jshint curly:true, indent:4, strict:true*/
+
 function showPreview(html, resizeFunc) {
     $('#monitor').html(html);
 

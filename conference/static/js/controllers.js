@@ -1,4 +1,5 @@
-/*jshint indent:4, strict:true*/
+/*jshint curly:true, indent:4, strict:true*/
+
 function onLoadCtrl ($scope, $rootScope, $translate) {
     "use strict";
 
@@ -118,9 +119,14 @@ function previewCtrl ($scope, $rootScope) {
     });
 
     $rootScope.resizeVideoLabel = function(videoElement, labelElement) {
-        var size = String(videoElement.height() / 11) + 'pt';
-        labelElement.css('font-size', size)
-                    .css('line-height', size);
+        var container = videoElement.parent();
+        var size = videoElement.height() / 11;
+        if (size < 20 &&
+            container!=null && container.width() >= 800) 
+            size = 20;
+        var cssSize = String(size) + 'pt';
+        labelElement.css('font-size', cssSize)
+                    .css('line-height', cssSize);
     };
 
     var getMonitor = function(number) {
@@ -204,6 +210,16 @@ function presetsCtrl ($scope,$rootScope,GetPresets) {
             return id;
     };
 
+    $rootScope.isGroupInPresets = function(group) {
+        for (var i=0; i<$scope.presets.length;i++) {
+            var preset = $scope.presets[i];
+            if (preset.groups != null && 
+                preset.groups.indexOf(group) > -1)
+                return true;
+        }
+        return false;
+    }
+
     GetPresets.then(function (data) {
         $scope.presets = data.data.presets;
     }); 
@@ -269,9 +285,6 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
 
         var nuveToken = $('body').data('nuve-token');
 
-        // Monkey-patching Erizo player to disable control bar display
-        Erizo.Bar = function () {this.display = this.hide = function () {};};
-
         // Stream to send messages to participants
         $rootScope.dataStream = Erizo.Stream({
             data: true,
@@ -304,7 +317,10 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
         $rootScope.room.connect();
 
     }); 
-
+    
+    $scope.isGroupInPresets = function(group) {
+        return $rootScope.isGroupInPresets(group);
+    }
 
 }
 groupsCtrl.$inject = ["$scope","$rootScope","GetGroups"];

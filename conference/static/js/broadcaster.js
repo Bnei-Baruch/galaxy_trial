@@ -1,23 +1,20 @@
-/*jshint indent:4, strict:true*/
+/*jshint curly:true, indent:4, strict:true*/
 
 var room, localStream;
 
 $(function () {
     "use strict";
 
-    var nuveData = $('#js-nuve-data').data();
-
-    // Monkey-patching Erizo player to disable control bar display
-    Erizo.Bar = function () {this.display = this.hide = function () {};};
+    var settings = $('#js-settings').data();
 
     localStream = Erizo.Stream({
         audio: true,
         video: true,
         attributes: {role: 'broadcaster'},
-        videoSize: [640, 480, 640, 480]
+        videoSize: [720, 576, 720, 576]
     }); 
 
-    var room = Erizo.Room({token: nuveData.token});
+    var room = Erizo.Room({token: settings.nuveToken});
 
     localStream.addEventListener('access-accepted', function () {
         room.connect();
@@ -25,7 +22,7 @@ $(function () {
     }); 
 
     room.addEventListener('room-connected', function (roomEvent) {
-        room.publish(localStream, {maxVideoBW: 450});
+        room.publish(localStream, {maxVideoBW: 2000});
     }); 
 
     localStream.init();

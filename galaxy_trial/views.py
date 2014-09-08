@@ -4,7 +4,7 @@ from django.shortcuts import redirect
 
 @login_required
 def index(request):
-    """Redirects users based on whether they are in the admins group.
+    """Redirects users to a view depending on their role.
     """
 
     for group_name in ('initiator', 'broadcaster'):
