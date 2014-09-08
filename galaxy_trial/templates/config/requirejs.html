@@ -1,10 +1,14 @@
+{% load staticfiles %}
 <script type="text/javascript">
 <!--
 var require = {
     baseUrl: '{{ STATIC_URL|escapejs }}',
     paths: {
-        'jquery': 'js/jquery-2.1.1.min',
-        'bootstrap': '{% static 'bootstrap/js/bootstrap.min' %}',
+        'jquery': "{% static 'js/jquery-2.1.1.min' %}",
+        'bootstrap': "{% static 'bootstrap/js/bootstrap.min' %}",
+        'erizo': "{% static 'js/vendor/erizo' %}",
+        'base-broadcaster': "{% static 'js/base-broadcaster' %}"
+        'disable-erizo-bar': "{% static 'js/disable-erizo-bar' %}"
     },
     /* Hardcoded dependencies for 3rd-party modules */
     shim: {
@@ -17,4 +21,4 @@ var require = {
 };
 //-->
 </script>
-<script type="text/javascript" src="{% static 'js/require.min' %}"></script>
+<script type="text/javascript" src="{% static 'js/require.min.js' %}"></script>
