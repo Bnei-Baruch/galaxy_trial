@@ -3,10 +3,11 @@
 /* TODO: I18N */
 
 require(
-    ['jquery', 'config', 'erizo', 'disable-erizo-bar'],
-    function($, config) {
+    ['jquery', 'config', 'base-broadcaster', 'erizo', 'disable-erizo-bar'],
+    function($, config, BaseBroadcaster) {
         "use strict";
 
+        $.extend(BaseBroadcaster.prototype);
         // Page settings taken from DOM
         var settings;
 
@@ -54,17 +55,6 @@ require(
             stream.addEventListener('access-denied', handlers.onCameraAccessDenied);
 
             return stream;
-        }
-
-        function initErizoRoom() {
-            room = Erizo.Room({token: settings.nuveToken});
-
-            room.addEventListener('room-connected', handlers.onRoomConnected);
-            room.addEventListener('room-disconnected', handlers.onRoomDisconnected);
-            room.addEventListener('stream-added', handlers.onStreamAdded);
-            room.addEventListener('stream-subscribed', handlers.onStreamSubscribed);
-            room.addEventListener('stream-unsubscribed', handlers.onStreamUnsubscribed);
-            room.addEventListener('stream-removed', handlers.onStreamRemoved);
         }
 
         /* Licode event handlers, see the official documentation

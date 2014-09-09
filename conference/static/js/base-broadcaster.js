@@ -14,12 +14,33 @@ define(
                 var that = this;
 
                 $(function () {
-                    // Status alert div
+                    // Preloading DOM objects
+                    that.settings = $('#js-settings').data();
                     that.statusContainer = $('#js-status-container');
+
+                    that.initialize();
                 });
             };
 
             /* Public methods */
+
+            Module.prototype.initErizoRoom = function () {
+                var that = this;
+
+                that.room = Erizo.Room({token: settings.nuveToken});
+                that.room.addEventListener('room-connected', handlers.onRoomConnected);
+                that.room.addEventListener('room-disconnected', handlers.onRoomDisconnected);
+                that.room.addEventListener('stream-added', handlers.onStreamAdded);
+                that.room.addEventListener('stream-subscribed', handlers.onStreamSubscribed);
+                that.room.addEventListener('stream-unsubscribed', handlers.onStreamUnsubscribed);
+                that.room.addEventListener('stream-removed', handlers.onStreamRemoved);
+            }
+
+            /* 
+             * Dummy initializer
+             */
+            Module.prototype.initialize = function () {
+            };
 
             /*
              * Overrides default RTCPeerConnection and reloads the window
