@@ -1,71 +1,16 @@
 /*jshint curly:true, indent:4, strict:true*/
 
-/* TODO: I18N */
+/* TODO: I18N, convert to CoffeScript in order to get rid of the ugly JS inheritances */
 
 require(
-    ['jquery', 'config', 'base-broadcaster', 'erizo', 'disable-erizo-bar'],
+    ['jquery', 'config', 'base-broadcaster'],
     function($, config, BaseBroadcaster) {
         "use strict";
 
-        $.extend(BaseBroadcaster.prototype);
-        // Page settings taken from DOM
-        var settings;
+        var Participant = function () {};
 
-        // Erizo room object
-        var room;
-
-        // Licode event handlers
-        var handlers;
-
-        // Erizo streams
-        var streamToBroadcast, remoteStream;
-
-        // WebRTC track object for the local stream
-        var broadcastedVideoTrack;
-
-        // DOM objects
-        var remoteStreamPopup, playButton;
-
-        // Can be undefined, 'added' or 'subscribed'
-        var remoteStreamState;
-
-
-        $(function () {
-            settings = $('#js-settings').data();
-
-            streamToBroadcast = createStreamToBroadcast();
-
-            initErizoRoom();
-            bindDOMEvents();
-
-            streamToBroadcast.init();
-        });
-
-        function createStreamToBroadcast() {
-            var stream = Erizo.Stream({
-                audio: false,
-                video: true,
-                data: false,
-                attributes: {participantID: settings.participantId, role: 'participant'},
-                videoSize: [640, 480, 640, 480]
-            }); 
-
-            console.log(handlers);
-            stream.addEventListener('access-accepted', handlers.onCameraAccessAccepted);
-            stream.addEventListener('access-denied', handlers.onCameraAccessDenied);
-
-            return stream;
-        }
-
-        /* Licode event handlers, see the official documentation
-         * http://lynckia.com/licode/client-api.html#events
-         */
-        handlers = {
-            /* Connects to a Licode room and displays local stream */
+        Participant.prototype.handlers = {
             onCameraAccessAccepted: function () {
-                showStatusMessage("Connecting to the server...", 'info');
-                room.connect();
-
                 var localStream = Erizo.Stream({
                     stream: streamToBroadcast.stream.clone(),
                     video: true,
@@ -73,148 +18,149 @@ require(
 
                 localStream.show('js-local-video', {speaker: false});
             },
-            onCameraAccessDenied: function () {
-                var message = "Camera access denied, please accept appropriate camera " +
-                    "using the camera icon at the end of the address bar";
-                showStatusMessage(message, 'danger');
-            },
             onRoomConnected: function (roomEvent) {
-                broadcastedVideoTrack = streamToBroadcast.stream.getVideoTracks()[0];
-                broadcastedVideoTrack.enabled = false;
-                room.publish(streamToBroadcast, {maxVideoBW: 1000});
-                _processNewStreams(roomEvent.streams);
-                reloadOnDisconnect(streamToBroadcast);
-                hideStatusMessage();
-            },
-            onRoomDisconnected: function () {
-                waitAndReload();
-            },
-            onStreamAdded: function (streamEvent) {
-                _processNewStreams([streamEvent.stream]);
+                this.broadcastedVideoTrack = this.streamToBroadcast.stream.getVideoTracks()[0];
+                this.broadcastedVideoTrack.enabled = false;
             },
             onStreamSubscribed: function (streamEvent) {
-
                 var stream = streamEvent.stream;
 
-                if (_isBroadcasterStream(stream)) {
+                if (this.isBroadcasterStream(stream)) {
                     playButton.button('reset');
-                    remoteStreamState = 'subscribed';
+                    this.remoteStreamState = 'subscribed';
 
                     if (remoteStreamPopup) {
-                        _showRemoteStream(stream);
+                        this.showRemoteStream(stream);
                     } else {
-                        room.unsubscribe(stream);
+                        this.room.unsubscribe(stream);
                     }
                 }
             },
             onStreamUnsubscribed: function (streamEvent) {
                 if (_isBroadcasterStream(streamEvent.stream)) {
-                    remoteStreamState = 'added';
+                    this.remoteStreamState = 'added';
                 }
             },
             onStreamRemoved: function (streamEvent) {
                 var stream = streamEvent.stream;
-                if (_isBroadcasterStream(stream)) {
-                    _hideRemoteStream(stream);
-                    remoteStreamState = undefined;
+                if (this.isBroadcasterStream(stream)) {
+                    this.hideRemoteStream(stream);
+                    this.remoteStreamState = undefined;
                 }
             },
-            /* Holds or unholds broadcaster stream */
+
             onDataStreamMessage: function(e) {
                 console.log("Got message: ", e.msg);
-                if (e.msg.participantID == settings.participantId) {
+                // Holds or unhold broadcaster stream
+                if (e.msg.participantID == this.nuveConfig.userId) {
                     broadcastedVideoTrack.enabled = (e.msg.action == 'unhold');
                 }
-
             }
         };
 
-        function bindDOMEvents() {
-            playButton = $('#js-play-remote-button');
+        Participant.prototype.initialize = function () {
+            var that = this;
 
-            playButton.click(function () {
-                _createPopup();
-                room.subscribe(remoteStream);
-                playButton.button('loading');
+            that.playButton = $('#js-play-remote-button');
+
+            that.playButton.click(function () {
+                that.createPopup();
+                that.room.subscribe(remoteStream);
+                that.playButton.button('loading');
             });
 
             $(window).unload(function () {
-                if (remoteStreamPopup) {
-                    remoteStreamPopup.close();
+                if (that.remoteStreamPopup) {
+                    that.remoteStreamPopup.close();
                 }
             });
+        };
 
-        }
+        Participant.prototype.createStreamToBroadcast = function () {
+            var stream = Erizo.Stream({
+                audio: false,
+                video: true,
+                data: false,
+                attributes: {participantID: this.nuveConfig.userId, role: 'participant'},
+                videoSize: config.participant.videoSize
+            }); 
+            return stream;
+        };
 
-        function _createPopup() {
-            remoteStreamPopup = window.open(undefined, undefined, 'width=1024,height=768');
-            remoteStreamPopup.document.write("<title>" + settings.popupTitle + "</title>");
-            remoteStreamPopup.document.write("<body style='background: #777; margin: 0; cursor: none;'></body>");
-
-            _bindPopupEvents();
-        }
-
-        function _bindPopupEvents() {
-            $(remoteStreamPopup).unload(function () {
-                remoteStream.stop('js-remote-video');
-
-                if (remoteStreamState !== undefined) {
-                    playButton.prop('disabled', false);
-                }
-
-                if (remoteStreamState == 'subscribed') {
-                    room.unsubscribe(remoteStream);
-                    remoteStreamState = 'added';
-                }
-                remoteStreamPopup = undefined;
-            });
-        }
-
-        function _processNewStreams(streams) {
-            for (var index in streams) {
-                var stream = streams[index];
-
-                switch (stream.getAttributes().role) {
-                    case 'initiator':
-                        room.subscribe(stream);
-                        stream.addEventListener('stream-data', handlers.onDataStreamMessage);
-                        break;
-                    case 'broadcaster':
-                        remoteStream = stream;
-                        if (remoteStreamPopup) {
-                            room.subscribe(remoteStream);
-                        } else {
-                            playButton.prop('disabled', false);
-                        }
-                        break;
-                }
+        Participant.prototype.processNewStream = function (stream, role) {
+            switch (role) {
+                case 'initiator':
+                    this.room.subscribe(stream);
+                    stream.addEventListener('stream-data', onDataStreamMessage);
+                    break;
+                case 'broadcaster':
+                    remoteStream = stream;
+                    if (this.remoteStreamPopup) {
+                        this.room.subscribe(remoteStream);
+                    } else {
+                        this.playButton.prop('disabled', false);
+                    }
+                    break;
             }
-        }
+        };
 
-        function _showRemoteStream(stream) {
-            _disablePlayButton();
+        Participant.prototype.createPopup = function () {
+            this.remoteStreamPopup = window.open(undefined, undefined, 'width=1024,height=768');
+            this.remoteStreamPopup.document.write("<title>" + config.participant.monitorPopupTitle + "</title>");
+            this.remoteStreamPopup.document.write("<body style='background: #777; margin: 0; cursor: none;'></body>");
+            this.bindPopupEvents();
+        };
+
+        Participant.prototype.bindPopupEvents = function () {
+            var that = this;
+
+            $(that.remoteStreamPopup).unload(function () {
+                that.remoteStream.stop('js-remote-video');
+
+                if (that.remoteStreamState !== undefined) {
+                    that.playButton.prop('disabled', false);
+                }
+
+                if (that.remoteStreamState == 'subscribed') {
+                    that.room.unsubscribe(remoteStream);
+                    that.remoteStreamState = 'added';
+                }
+                that.remoteStreamPopup = undefined;
+            });
+        };
+
+        Participant.prototype.showRemoteStream = function (stream) {
+            this.disablePlayButton();
 
             stream.play('js-remote-video');
             $('#js-remote-video video').get(0).volume = 0.0;
 
             var remoteVideoHTML = $('#js-remote-video').html();
-            remoteStreamPopup.document.body.innerHTML = remoteVideoHTML;
-        }
+            this.remoteStreamPopup.document.body.innerHTML = remoteVideoHTML;
+        };
 
-        function _hideRemoteStream(stream) {
-            playButton.button('reset');
-            _disablePlayButton();
+        Participant.prototype.hideRemoteStream = function (stream) {
+            this.playButton.button('reset');
+            this.disablePlayButton();
             stream.stop('js-remote-video');
-        }
+        };
 
-        function _disablePlayButton() {
+        Participant.prototype.disablePlayButton = function () {
+            var that = this;
+
             window.setTimeout(function() {
-                playButton.prop('disabled', true);
+                that.playButton.prop('disabled', true);
             }, 0);
-        }
+        };
 
-        function _isBroadcasterStream(stream) {
+        Participant.prototype.isBroadcasterStream = function (stream) {
             return stream.getAttributes().role == 'broadcaster';
-        }
+        };
 
+        // Inheriting from base broadcaster class
+        $.extend(Participant.prototype, BaseBroadcaster.prototype);
+
+        var participant = new Participant({
+            maxVideoBW: config.participant.maxVideoBW
+        });
     });

@@ -29,10 +29,9 @@
 <div id="js-remote-video" class="hide">
 </div>
 
-<div id="js-settings"
-    data-nuve-token="{{ nuve_token }}"
-    data-participant-id="{{ request.user.username }}"
-    data-popup-title="{% trans "Remote stream" %}"
+<div id="js-nuve-config"
+    data-token="{{ nuve_token }}"
+    data-user-id="{{ request.user.username }}"
     class="hide">
 </div>
 {% endblock %}
