@@ -159,7 +159,7 @@ require(
         function _createPopup() {
             remoteStreamPopup = window.open(undefined, undefined, 'width=1024,height=768');
             remoteStreamPopup.document.write("<title>" + settings.popupTitle + "</title>");
-            remoteStreamPopup.document.write("<body style='background: #777; margin: 0;'></body>");
+            remoteStreamPopup.document.write("<body style='background: #777; margin: 0; cursor: none;'></body>");
 
             _bindPopupEvents();
         }
