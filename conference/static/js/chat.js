@@ -4,7 +4,7 @@ $(function() {
   if (chat_client.length > 0) {
     chat_client.append(
         '<iframe scrolling="yes" style="width: 100%; height: 100%;" ' +
-        'src="https://we.kab.tv/?label=shidur_' + settings.participantId +
+        'src="https://chat1.kbb1.com/?label=shidur_' + settings.participantId +
         '&css=' + location.origin + '/static/css/chat.css' +
         '&auto_approve=true' +
         '&from_text=Participant' +
@@ -19,7 +19,7 @@ function loadChatModerator() {
   if (chat_moderator.length > 0) {
     chat_moderator.append(
         '<iframe scrolling="yes" style="width: 100%; height: 100%;" ' +
-        'src="https://we.kab.tv/admin.html?label=shidur_*' +
+        'src="https://chat1.kbb1.com/admin.html?label=shidur_*' +
         '&css=' + location.origin + '/static/css/chat.css' +
         '&auto_approve=true' +
         '&from_text=Shidur' +
