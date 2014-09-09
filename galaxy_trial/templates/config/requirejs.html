@@ -7,7 +7,7 @@ var require = {
         'jquery': "{% static 'js/jquery-2.1.1.min' %}",
         'bootstrap': "{% static 'bootstrap/js/bootstrap.min' %}",
         'erizo': "{% static 'js/vendor/erizo' %}",
-        'base-broadcaster': "{% static 'js/base-broadcaster' %}"
+        'base-broadcaster': "{% static 'js/base-broadcaster' %}",
         'disable-erizo-bar': "{% static 'js/disable-erizo-bar' %}"
     },
     /* Hardcoded dependencies for 3rd-party modules */
@@ -15,7 +15,7 @@ var require = {
         'bootstrap': ['jquery']
     },
     /* Should be loaded as soon as possible */
-    deps: ['jquery', 'bootstrap'],
+    deps: ['jquery', 'bootstrap', 'erizo'],
     waitSeconds: 15,
     enforceDefine: false
 };

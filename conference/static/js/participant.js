@@ -7,57 +7,67 @@ require(
     function($, config, BaseBroadcaster) {
         "use strict";
 
-        var Participant = function () {};
+        // Inheriting from base broadcaster
+        var Participant = BaseBroadcaster;
 
-        Participant.prototype.handlers = {
-            onCameraAccessAccepted: function () {
+        var licodeHandlers = {
+            onCameraAccessAccepted: function (that) {
                 var localStream = Erizo.Stream({
-                    stream: streamToBroadcast.stream.clone(),
+                    stream: that.streamToBroadcast.stream.clone(),
                     video: true,
                 });
 
                 localStream.show('js-local-video', {speaker: false});
             },
-            onRoomConnected: function (roomEvent) {
-                this.broadcastedVideoTrack = this.streamToBroadcast.stream.getVideoTracks()[0];
-                this.broadcastedVideoTrack.enabled = false;
+            onRoomConnected: function (that, roomEvent) {
+                that.broadcastedVideoTrack = that.streamToBroadcast.stream.getVideoTracks()[0];
+                that.broadcastedVideoTrack.enabled = false;
             },
-            onStreamSubscribed: function (streamEvent) {
+            onStreamSubscribed: function (that, streamEvent) {
                 var stream = streamEvent.stream;
 
-                if (this.isBroadcasterStream(stream)) {
-                    playButton.button('reset');
-                    this.remoteStreamState = 'subscribed';
+                if (that.isBroadcasterStream(stream)) {
+                    that.playButton.button('reset');
+                    that.remoteStreamState = 'subscribed';
 
-                    if (remoteStreamPopup) {
-                        this.showRemoteStream(stream);
+                    if (that.remoteStreamPopup) {
+                        that.showRemoteStream(stream);
                     } else {
-                        this.room.unsubscribe(stream);
+                        that.room.unsubscribe(stream);
                     }
                 }
             },
-            onStreamUnsubscribed: function (streamEvent) {
-                if (_isBroadcasterStream(streamEvent.stream)) {
-                    this.remoteStreamState = 'added';
+            onStreamUnsubscribed: function (that, streamEvent) {
+                if (that.isBroadcasterStream(streamEvent.stream)) {
+                    that.remoteStreamState = 'added';
                 }
             },
-            onStreamRemoved: function (streamEvent) {
+            onStreamRemoved: function (that, streamEvent) {
                 var stream = streamEvent.stream;
-                if (this.isBroadcasterStream(stream)) {
-                    this.hideRemoteStream(stream);
-                    this.remoteStreamState = undefined;
+                if (that.isBroadcasterStream(stream)) {
+                    that.hideRemoteStream(stream);
+                    that.remoteStreamState = undefined;
                 }
             },
-
-            onDataStreamMessage: function(e) {
+            onDataStreamMessage: function(that, e) {
                 console.log("Got message: ", e.msg);
                 // Holds or unhold broadcaster stream
-                if (e.msg.participantID == this.nuveConfig.userId) {
-                    broadcastedVideoTrack.enabled = (e.msg.action == 'unhold');
+                if (e.msg.participantID == that.nuveConfig.userId) {
+                    that.broadcastedVideoTrack.enabled = (e.msg.action == 'unhold');
                 }
             }
         };
 
+        // WebRTC track object for the local stream
+        Participant.prototype.broadcastedVideoTrack = undefined;
+
+        // Can be undefined, 'added' or 'subscribed'
+        Participant.prototype.remoteStreamState = undefined;
+
+        // Remote stream popup window object
+        Participant.prototype.remoteStreamPopup = undefined;
+
+        // DOM events initialization
         Participant.prototype.initialize = function () {
             var that = this;
 
@@ -65,7 +75,7 @@ require(
 
             that.playButton.click(function () {
                 that.createPopup();
-                that.room.subscribe(remoteStream);
+                that.room.subscribe(that.remoteStream);
                 that.playButton.button('loading');
             });
 
@@ -88,17 +98,21 @@ require(
         };
 
         Participant.prototype.processNewStream = function (stream, role) {
+            var that = this;
+
             switch (role) {
                 case 'initiator':
-                    this.room.subscribe(stream);
-                    stream.addEventListener('stream-data', onDataStreamMessage);
+                    that.room.subscribe(stream);
+                    stream.addEventListener('stream-data', function (e) {
+                        licodeHandlers.onDataStreamMessage(that, e);
+                    });
                     break;
                 case 'broadcaster':
-                    remoteStream = stream;
-                    if (this.remoteStreamPopup) {
-                        this.room.subscribe(remoteStream);
+                    that.remoteStream = stream;
+                    if (that.remoteStreamPopup) {
+                        that.room.subscribe(that.remoteStream);
                     } else {
-                        this.playButton.prop('disabled', false);
+                        that.playButton.prop('disabled', false);
                     }
                     break;
             }
@@ -122,7 +136,7 @@ require(
                 }
 
                 if (that.remoteStreamState == 'subscribed') {
-                    that.room.unsubscribe(remoteStream);
+                    that.room.unsubscribe(that.remoteStream);
                     that.remoteStreamState = 'added';
                 }
                 that.remoteStreamPopup = undefined;
@@ -157,10 +171,7 @@ require(
             return stream.getAttributes().role == 'broadcaster';
         };
 
-        // Inheriting from base broadcaster class
-        $.extend(Participant.prototype, BaseBroadcaster.prototype);
-
         var participant = new Participant({
             maxVideoBW: config.participant.maxVideoBW
-        });
+        }, licodeHandlers);
     });

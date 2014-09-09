@@ -6,14 +6,15 @@
  */
 
 define(
-        ['jquery', 'erizo', 'disable-erizo-bar'],
-        function ($) {
+        ['jquery', 'config', 'erizo', 'disable-erizo-bar'],
+        function ($, config) {
             "use strict";
 
-            var Module = function (settings) {
+            var Module = function (settings, licodeHandlers) {
                 var that = this;
 
                 that.settings = settings;
+                that.handlers = licodeHandlers;
 
                 $(function () {
                     that.nuveConfig = $('#js-nuve-config').data();
@@ -28,48 +29,69 @@ define(
                 });
             };
 
-            Module.prototype._roomHandlers = {
-                'room-connected': function (roomEvent) {
-                    this.handlers.onRoomConnected(roomEvent);
+            /*
+             * Erizo room handlers object, note that the properties API
+             * is used just to get access to `this`.
+             *
+             * */
+            Object.defineProperty(Module.prototype, '_roomHandlers', {get: function () {
+                var that = this;
 
-                    this.room.publish(this.streamToBroadcast,
-                            {maxVideoBW: this.settings.maxVideoBW});
-                    this._processNewStreams(roomEvent.streams);
-                    this.reloadOnDisconnect(this.streamToBroadcast);
-                    this.hideStatusMessage();
-                },
-                'room-disconnected': function (roomEvent) {
-                    this.handlers.onRoomDisonnected(roomEvent);
-                    this.waitAndReload();
-                },
-                'stream-added': function (streamEvent) {
-                    this.handlers.onStreamAdded(streamEvent);
-                    this._processNewStreams([streamEvent.stream]);
-                },
-                'stream-subscribed': function () {
-                    this.handlers.onStreamSubscribed(streamEvent);
-                },
-                'stream-unsubscribed': function () {
-                    this.handlers.onStreamUnsubscribed(streamEvent);
-                },
-                'stream-removed': function () {
-                    this.handlers.onStreamRemoved(streamEvent);
-                }
-            };
+                var roomHandlers = {
+                    'room-connected': function (roomEvent) {
+                        that._callCustomHandler('onRoomConnected', roomEvent);
 
-            Module.prototype._streamHandlers = {
-                'access-accepted': function () {
-                    this.showStatusMessage("Connecting to the server...", 'info');
-                    this.room.connect();
-                    this.handlers.onCameraAccessAccepted();
-                },
-                'access-denied': function () {
-                    var message = "Camera access denied, please accept appropriate camera " +
-                        "using the camera icon at the end of the address bar";
-                    this.showStatusMessage(message, 'danger');
-                    this.handlers.onCameraAccessDenied();
-                }
-            };
+                        that.room.publish(that.streamToBroadcast,
+                                {maxVideoBW: that.settings.maxVideoBW});
+                        that._processNewStreams(roomEvent.streams);
+                        that.reloadOnDisconnect(that.streamToBroadcast);
+                        that.hideStatusMessage();
+                    },
+                    'room-disconnected': function (roomEvent) {
+                        that._callCustomHandler('onRoomDisonnected', roomEvent);
+                        that.waitAndReload();
+                    },
+                    'stream-added': function (streamEvent) {
+                        that._callCustomHandler('onStreamAdded', streamEvent);
+                        that._processNewStreams([streamEvent.stream]);
+                    },
+                    'stream-subscribed': function (streamEvent) {
+                        that._callCustomHandler('onStreamSubscribed', streamEvent);
+                    },
+                    'stream-unsubscribed': function (streamEvent) {
+                        that._callCustomHandler('onStreamUnsubscribed', streamEvent);
+                    },
+                    'stream-removed': function (streamEvent) {
+                        that._callCustomHandler('onStreamRemoved', streamEvent);
+                    }
+                };
+
+                return roomHandlers;
+            }});
+
+            /*
+             * Erizo stream handlers object
+             *
+             * */
+            Object.defineProperty(Module.prototype, '_streamHandlers', {get: function () {
+                var that = this;
+
+                var streamHandlers = {
+                    'access-accepted': function () {
+                        that.showStatusMessage("Connecting to the server...", 'info');
+                        that.room.connect();
+                        that._callCustomHandler('onCameraAccessAccepted');
+                    },
+                    'access-denied': function () {
+                        var message = "Camera access denied, please accept appropriate camera " +
+                            "using the camera icon at the end of the address bar";
+                        that.showStatusMessage(message, 'danger');
+                        that._callCustomHandler('onCameraAccessDenied');
+                    }
+                };
+
+                return streamHandlers;
+            }});
 
             Module.prototype._createErizoRoom = function () {
                 var room = Erizo.Room({token: this.nuveConfig.token});
@@ -86,21 +108,53 @@ define(
             };
 
             Module.prototype._createStreamToBroadcast = function () {
-                var stream = this._createStreamToBroadcast();
+                var stream = this.createStreamToBroadcast();
                 this._bindErizoHandlers(stream, this._streamHandlers);
                 return stream;
             };
 
             Module.prototype._bindErizoHandlers = function (object, handlers) {
                 for (var eventName in handlers) {
-                    room.addEventListener(eventName, handlers[eventName]);
+                    object.addEventListener(eventName, handlers[eventName]);
+                }
+            };
+
+            Module.prototype._callCustomHandler = function (name, e) {
+                if (this.handlers[name] !== undefined) {
+                    this.handlers[name](this, e);
                 }
             };
 
             /* Public methods */
 
+            /*
+             * Override for DOM initialization.
+             *
+             * */
             Module.prototype.initialize = function () {
-                console.error("Non-implemented initialize() method called");
+                console.warn("Non-implemented initialize() method called");
+            };
+
+            /*
+             * Override to perform custom actions on new streams.
+             *
+             * @param stream: Erizo stream
+             * @param role: stream's role name
+             *
+             * */
+            Module.prototype.processNewStream = function (stream, role) {
+                console.warn("Non-implemented processNewStream() method called");
+            };
+
+            /*
+             * Has to be overriden in order to create a local stream to broadcast.
+             *
+             * @param stream: Erizo stream
+             * @param role: stream's role name
+             *
+             * */
+            Module.prototype.createStreamToBroadcast = function (stream, role) {
+                console.error("Non-implemented createStreamToBroadcast() method called");
             };
 
             /*
@@ -119,30 +173,40 @@ define(
                 };
             };
 
+            /*
+             * Waits for the timeout specified in config.reloadOnDisconnectTimeout
+             * and reloads the window.
+             *
+             * */
             Module.prototype.waitAndReload = function () {
                 var message = "Connection lost, retrying in few seconds...";
-                showStatusMessage(message, 'danger');
+                this.showStatusMessage(message, 'danger');
 
                 window.setTimeout(function () {
                     location.reload();
-                }, 10000);
+                }, config.reloadOnDisconnectTimeout);
             };
 
+            /*
+             * Displays status message.
+             *
+             * @param message: message string
+             * @param kind: 'success', 'info', 'warning' or 'danger'
+             * */
             Module.prototype.showStatusMessage = function (message, kind) {
                 $('body').toggleClass('alert', kind == 'danger');
-                var className = statusContainer.prop('class');
+                var className = this.statusContainer.prop('class');
                 var newClassName = className.replace(/\balert-.+?\b/g, 'alert-' + kind);
-                statusContainer.prop('class', newClassName);
-                statusContainer.text(message).show();
+                this.statusContainer.prop('class', newClassName);
+                this.statusContainer.text(message).show();
             };
 
+            /* Hides the status message.
+             *
+             * */
             Module.prototype.hideStatusMessage = function () {
                 $('body').removeClass('alert');
-                statusContainer.hide();
-            };
-
-            Module.prototype.processNewStream = function (stream, role) {
-                console.error("Non-implemented processNewStream() method called");
+                this.statusContainer.hide();
             };
 
             return Module;
