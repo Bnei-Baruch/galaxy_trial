@@ -1,29 +1,30 @@
 /*jshint curly:true, indent:4, strict:true*/
 
-var room, localStream;
+require(
+    ['jquery', 'config', 'base-broadcaster'],
+    function($, config, BaseBroadcaster) {
+        "use strict";
 
-$(function () {
-    "use strict";
+        // Inheriting from base broadcaster
+        var Broadcaster = BaseBroadcaster;
 
-    var settings = $('#js-settings').data();
+        var licodeHandlers = {
+            onCameraAccessAccepted: function (that) {
+                that.streamToBroadcast.play('js-local-video');
+            }
+        };
 
-    localStream = Erizo.Stream({
-        audio: true,
-        video: true,
-        attributes: {role: 'broadcaster'},
-        videoSize: [720, 576, 720, 576]
-    }); 
+        Broadcaster.prototype.createStreamToBroadcast = function () {
+            var stream = Erizo.Stream({
+                audio: true,
+                video: true,
+                attributes: {role: 'broadcaster'},
+                videoSize: config.broadcaster.videoSize
+            }); 
+            return stream;
+        };
 
-    var room = Erizo.Room({token: settings.nuveToken});
-
-    localStream.addEventListener('access-accepted', function () {
-        room.connect();
-        localStream.play('js-local-video');
-    }); 
-
-    room.addEventListener('room-connected', function (roomEvent) {
-        room.publish(localStream, {maxVideoBW: 2000});
-    }); 
-
-    localStream.init();
-});
+        var broadcaster = new Broadcaster({
+            maxVideoBW: config.broadcaster.maxVideoBW
+        }, licodeHandlers);
+    });

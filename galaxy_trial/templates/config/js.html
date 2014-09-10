@@ -1,0 +1,26 @@
+{% load i18n %}
+<script type="text/javascript">
+<!--
+/*jshint curly:true, indent:4, strict:true*/
+define('config', [], function () {
+    "use strict";
+
+    var config = {};
+
+    config.broadcaster = {
+        maxVideoBW: 2000,
+        videoSize: [720, 576, 720, 576]
+    };
+
+    config.participant = {
+        monitorPopupTitle: "{% trans 'Remote stream' %}",
+        maxVideoBW: 1000,
+        videoSize: [640, 480, 640, 480]
+    };
+
+    config.reloadOnDisconnectTimeout = 10000;
+
+    return config;
+});
+//-->
+</script>

@@ -40,12 +40,14 @@ function onLoadCtrl ($scope, $rootScope, $translate) {
         $rootScope.monitorGroups[number] = {};
     };
 
-    for (var i=1; i<=$rootScope.monitorNumber; i++)
+    for (var i=1; i<=$rootScope.monitorNumber; i++) {
         addMonitor(i);
+    }
 
     window.onbeforeunload = function (e) {
-        for (var i=1; i<=$rootScope.monitorNumber; i++) 
+        for (var i=1; i<=$rootScope.monitorNumber; i++) {
             $rootScope.monitors[i].close();   
+        }
     };
 }
 onLoadCtrl.$inject = ["$scope", "$rootScope", "$translate"];
@@ -53,7 +55,6 @@ onLoadCtrl.$inject = ["$scope", "$rootScope", "$translate"];
 function onLoadMonitorCtrl ($scope, $rootScope, $translate) {
     "use strict";
     $scope.test = function() {
-        //alert('test');
     };
 }
 onLoadMonitorCtrl.$inject = ["$scope", "$rootScope", "$translate"];
@@ -115,9 +116,9 @@ function previewCtrl ($scope, $rootScope) {
     $rootScope.resizeVideoLabel = function(videoElement, labelElement) {
         var container = videoElement.parent();
         var size = videoElement.height() / 11;
-        if (size < 20 &&
-            container!=null && container.width() >= 800) 
+        if (size < 20 && container !== null && container.width() >= 800) {
             size = 20;
+        }
         var cssSize = String(size) + 'pt';
         labelElement.css('font-size', cssSize)
                     .css('line-height', cssSize);
@@ -126,18 +127,22 @@ function previewCtrl ($scope, $rootScope) {
     var getMonitor = function(number) {
         return $rootScope.monitors[number];
     };
+
     var isGroupOnOtherMonitor = function(monitorNumber,groupId) {
         for (var i=1; i<=$rootScope.monitorNumber; i++) {
-            if (i != monitorNumber && $rootScope.monitorGroups[i][groupId] === true)
+            if (i != monitorNumber && $rootScope.monitorGroups[i][groupId] === true) {
                 return true;
             }
+        }
         return false;
     };
+
     var isGroupOnPreview = function(groupId) {
         for (var i=0;i<$scope.previewList.length;i++) {
             var group = $scope.previewList[i];
-            if (group.id == groupId)
+            if (group.id == groupId) {
                 return true;
+            }
         }
         return false;
     };
@@ -159,8 +164,9 @@ function presetsCtrl ($scope,$rootScope,GetPresets) {
         if ($rootScope.ctrlDown)
         {
             var selectedPreset = $scope.selectedPreset();
-            if (selectedPreset.groups.length === 0)
+            if (selectedPreset.groups.length === 0) {
                 $scope.presets.splice(index, 1);
+            }
             return;
         }
         $scope.presetIndex = index;
@@ -168,27 +174,28 @@ function presetsCtrl ($scope,$rootScope,GetPresets) {
     };
 
     $scope.removeGroup = function (preset, group) {
-        if (!$rootScope.ctrlDown)
-            return;   
+        if (!$rootScope.ctrlDown) {
+            return;
+        }
         if (preset !== null) {
             var curGroupIndex = preset.groups.indexOf(group);
-            if (curGroupIndex != -1)
+            if (curGroupIndex != -1) {
                 preset.groups.splice(curGroupIndex, 1);
+            }
         }
         $rootScope.$broadcast('videoResize');
     };
 
     $scope.$on("addGroupToPreset", function (e, group) {
-        if ($scope.presets.length === 0)
-        $scope.addPreset();
+        if ($scope.presets.length === 0) {
+            $scope.addPreset();
+        }
         var curPreset = $scope.selectedPreset();
-        if (curPreset !== null)
-        {
+        if (curPreset !== null) {
             var curGroupIndex = curPreset.groups.indexOf(group);
-            if (curGroupIndex == -1)
-            curPreset.groups.push(group);
-        /*else
-          curPreset.splice(curGroupIndex, 1);*/
+            if (curGroupIndex == -1) {
+                curPreset.groups.push(group);
+            }
         }
         $rootScope.$broadcast('videoResize');
     });
@@ -198,21 +205,22 @@ function presetsCtrl ($scope,$rootScope,GetPresets) {
     };
 
     $scope.getGroupName = function(id) {
-        if (id in $rootScope.groupHash)
+        if (id in $rootScope.groupHash) {
             return $rootScope.groupHash[id].name;
-        else
+        } else {
             return id;
+        }
     };
 
     $rootScope.isGroupInPresets = function(group) {
         for (var i=0; i<$scope.presets.length;i++) {
             var preset = $scope.presets[i];
-            if (preset.groups != null && 
-                preset.groups.indexOf(group) > -1)
+            if (preset.groups !== null && preset.groups.indexOf(group) > -1) {
                 return true;
+            }
         }
         return false;
-    }
+    };
 
     GetPresets.then(function (data) {
         $scope.presets = data.data.presets;
@@ -229,24 +237,30 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
 
     $scope.groupClicked = function (group) {
         $scope.selectedGroup = group;
-        if (group === null) return;
-        if ($rootScope.ctrlDown)       
+        if (group === null) {
+            return;
+        }
+        if ($rootScope.ctrlDown) {
             $rootScope.$broadcast('addGroupToPreset', group);
-        else
+        } else {
             $rootScope.$broadcast('showGroupPreview', group);
+        }
     };
 
     var getGroupName = function (id) {
-        if (id in $rootScope.groupHash)
+        if (id in $rootScope.groupHash) {
             return $rootScope.groupHash[id].name;
-        else
+        } else {
             return id;
+        }
     };
 
     var setGroupState = function (participantID, state) {
         var group = $rootScope.groupHash[participantID];
-        group.state = state;
-        $scope.$apply();
+        if (group !== undefined) {
+            group.state = state;
+            $scope.$apply();
+        }
     };
 
     var addConnectingGroup = function (stream) {
@@ -288,9 +302,15 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
         $rootScope.room = Erizo.Room({token: nuveToken});
 
         $rootScope.room.addEventListener('room-connected', function (roomEvent) {
-            for (var index in roomEvent.streams)
+            for (var index in roomEvent.streams) {
                 addConnectingGroup(roomEvent.streams[index]);
+            }
             $rootScope.room.publish($rootScope.dataStream);
+        });
+
+        $rootScope.room.addEventListener('room-disconnected', function (roomEvent) {
+            alert("Connection to the server lost, press OK to retry...");
+            location.reload();
         });
 
         $rootScope.room.addEventListener('stream-subscribed', function(streamEvent) {
@@ -314,7 +334,7 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
     
     $scope.isGroupInPresets = function(group) {
         return $rootScope.isGroupInPresets(group);
-    }
+    };
 
 }
 groupsCtrl.$inject = ["$scope","$rootScope","GetGroups"];

@@ -3,15 +3,13 @@
 {% load i18n staticfiles %}
 
 {% block head %}
-<script src="{% static 'js/vendor/erizo.js' %}"></script>
-<script src="{% static 'js/disable-erizo-bar.js' %}"></script>
 <script src="{% static 'js/participant.js' %}"></script>
 {% endblock%}
 
 {% block content %}
 <h1>{% trans "Participant" %}</h1>
 
-<div class="alert alert-danger" id="js-status-container" role="alert" style="display: none;"></div>
+<div class="alert alert-info" id="js-status-container" role="alert" style="display: none"></div>
 
 <div class="panel panel-default">
     <div class="panel-heading">{% trans "Local video stream" %}</div>
@@ -30,10 +28,9 @@
 <div id="js-remote-video" class="hide">
 </div>
 
-<div id="js-settings"
-    data-nuve-token="{{ nuve_token }}"
-    data-participant-id="{{ request.user.username }}"
-    data-popup-title="{% trans "Remote stream" %}"
+<div id="js-nuve-config"
+    data-token="{{ nuve_token }}"
+    data-user-id="{{ request.user.username }}"
     class="hide">
 </div>
 {% endblock %}
