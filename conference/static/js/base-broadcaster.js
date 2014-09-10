@@ -2,7 +2,6 @@
 
 /*
  * Base module for participant and broadcaster pages
- * TODO: move under RequireJS, http://requirejs.org/
  */
 
 define(
@@ -10,7 +9,7 @@ define(
         function ($, config) {
             "use strict";
 
-            var Module = function (settings, licodeHandlers) {
+            var BaseParticipant = function (settings, licodeHandlers) {
                 var that = this;
 
                 that.settings = settings;
@@ -30,13 +29,9 @@ define(
             };
 
             /*
-             * Erizo room handlers object, note that the properties API
-             * is used just to get access to `this`.
-             *
+             * Erizo room handlers object getter
              * */
-            Object.defineProperty(Module.prototype, '_roomHandlers', {get: function () {
-                var that = this;
-
+            BaseParticipant.prototype._getRoomHandlers = function (that) {
                 var roomHandlers = {
                     'room-connected': function (roomEvent) {
                         that._callCustomHandler('onRoomConnected', roomEvent);
@@ -67,15 +62,12 @@ define(
                 };
 
                 return roomHandlers;
-            }});
+            };
 
             /*
-             * Erizo stream handlers object
-             *
+             * Erizo stream handlers object getter
              * */
-            Object.defineProperty(Module.prototype, '_streamHandlers', {get: function () {
-                var that = this;
-
+            BaseParticipant.prototype._getStreamHandlers = function (that) {
                 var streamHandlers = {
                     'access-accepted': function () {
                         that.showStatusMessage("Connecting to the server...", 'info');
@@ -91,15 +83,15 @@ define(
                 };
 
                 return streamHandlers;
-            }});
+            };
 
-            Module.prototype._createErizoRoom = function () {
+            BaseParticipant.prototype._createErizoRoom = function () {
                 var room = Erizo.Room({token: this.nuveConfig.token});
-                this._bindErizoHandlers(room, this._roomHandlers);
+                this._bindErizoHandlers(room, this._getRoomHandlers);
                 return room;
             };
 
-            Module.prototype._processNewStreams = function (streams) {
+            BaseParticipant.prototype._processNewStreams = function (streams) {
                 for (var index in streams) {
                     var stream = streams[index];
                     var role = stream.getAttributes().role;
@@ -107,19 +99,20 @@ define(
                 }
             };
 
-            Module.prototype._createStreamToBroadcast = function () {
+            BaseParticipant.prototype._createStreamToBroadcast = function () {
                 var stream = this.createStreamToBroadcast();
-                this._bindErizoHandlers(stream, this._streamHandlers);
+                this._bindErizoHandlers(stream, this._getStreamHandlers);
                 return stream;
             };
 
-            Module.prototype._bindErizoHandlers = function (object, handlers) {
+            BaseParticipant.prototype._bindErizoHandlers = function (object, handlersGetter) {
+                var handlers = handlersGetter(this);
                 for (var eventName in handlers) {
                     object.addEventListener(eventName, handlers[eventName]);
                 }
             };
 
-            Module.prototype._callCustomHandler = function (name, e) {
+            BaseParticipant.prototype._callCustomHandler = function (name, e) {
                 if (this.handlers[name] !== undefined) {
                     this.handlers[name](this, e);
                 }
@@ -129,9 +122,8 @@ define(
 
             /*
              * Override for DOM initialization.
-             *
              * */
-            Module.prototype.initialize = function () {
+            BaseParticipant.prototype.initialize = function () {
                 console.warn("Non-implemented initialize() method called");
             };
 
@@ -140,9 +132,8 @@ define(
              *
              * @param stream: Erizo stream
              * @param role: stream's role name
-             *
              * */
-            Module.prototype.processNewStream = function (stream, role) {
+            BaseParticipant.prototype.processNewStream = function (stream, role) {
                 console.warn("Non-implemented processNewStream() method called");
             };
 
@@ -151,9 +142,8 @@ define(
              *
              * @param stream: Erizo stream
              * @param role: stream's role name
-             *
              * */
-            Module.prototype.createStreamToBroadcast = function (stream, role) {
+            BaseParticipant.prototype.createStreamToBroadcast = function (stream, role) {
                 console.error("Non-implemented createStreamToBroadcast() method called");
             };
 
@@ -163,7 +153,7 @@ define(
              *
              * @param stream: Erizo stream
              * */
-            Module.prototype.reloadOnDisconnect = function (stream) {
+            BaseParticipant.prototype.reloadOnDisconnect = function (stream) {
                 var originalHandler = stream.pc.peerConnection.oniceconnectionstatechange;
                 stream.pc.peerConnection.oniceconnectionstatechange = function (e) {
                     if (e.target.iceConnectionState == 'disconnected') {
@@ -176,9 +166,8 @@ define(
             /*
              * Waits for the timeout specified in config.reloadOnDisconnectTimeout
              * and reloads the window.
-             *
              * */
-            Module.prototype.waitAndReload = function () {
+            BaseParticipant.prototype.waitAndReload = function () {
                 var message = "Connection lost, retrying in few seconds...";
                 this.showStatusMessage(message, 'danger');
 
@@ -193,7 +182,8 @@ define(
              * @param message: message string
              * @param kind: 'success', 'info', 'warning' or 'danger'
              * */
-            Module.prototype.showStatusMessage = function (message, kind) {
+            BaseParticipant.prototype.showStatusMessage = function (message, kind) {
+                console.log(message, kind);
                 $('body').toggleClass('alert', kind == 'danger');
                 var className = this.statusContainer.prop('class');
                 var newClassName = className.replace(/\balert-.+?\b/g, 'alert-' + kind);
@@ -202,12 +192,11 @@ define(
             };
 
             /* Hides the status message.
-             *
              * */
-            Module.prototype.hideStatusMessage = function () {
+            BaseParticipant.prototype.hideStatusMessage = function () {
                 $('body').removeClass('alert');
                 this.statusContainer.hide();
             };
 
-            return Module;
+            return BaseParticipant;
         });
