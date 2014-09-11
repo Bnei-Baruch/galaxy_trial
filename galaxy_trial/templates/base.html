@@ -19,6 +19,16 @@
           <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
         <![endif]-->
 
+        <style>
+            body.alert {
+                border-left: red solid 50px;
+                border-right: red solid 50px;
+            }
+        </style>
+
+        {% include "config/requirejs.html" %}
+        {% include "config/js.html" %}
+
         {% block head %}
         {% endblock %}
     </head>

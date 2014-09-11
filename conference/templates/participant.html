@@ -3,8 +3,6 @@
 {% load i18n staticfiles %}
 
 {% block head %}
-<script src="{% static 'js/vendor/erizo.js' %}"></script>
-<script src="{% static 'js/disable-erizo-bar.js' %}"></script>
 <script src="{% static 'js/participant.js' %}"></script>
 <script src="{% static 'js/chat.js' %}"></script>
 <link rel="stylesheet" href="{% static 'css/chat.css' %}" />
@@ -13,7 +11,7 @@
 {% block content %}
 <h1>{% trans "Participant" %}</h1>
 
-<div class="alert alert-danger" id="js-status-container" role="alert" style="display: none;"></div>
+<div class="alert alert-info" id="js-status-container" role="alert" style="display: none"></div>
 
 <div class="panel panel-default">
     <div class="panel-heading">{% trans "Local video stream" %}</div>
