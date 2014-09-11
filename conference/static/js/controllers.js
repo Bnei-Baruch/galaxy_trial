@@ -50,7 +50,13 @@ function onLoadCtrl ($scope, $rootScope, $translate) {
         }
     };
 }
+
 onLoadCtrl.$inject = ["$scope", "$rootScope", "$translate"];
+function onLoadChatModerator() {
+  loadChatModerator(); 
+}
+
+onLoadChatModerator.$inject = ["$scope"];
 
 function onLoadMonitorCtrl ($scope, $rootScope, $translate) {
     "use strict";

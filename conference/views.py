@@ -27,7 +27,7 @@ def _get_role_page(request, role_name, user_name=None):
     if request.user.groups.filter(name=role_name).exists():
         token = nuve_client.createToken(
             room['_id'], user_name or role_name, role_name)
-        context = dict(nuve_token=token)
+        context = dict(nuve_token=token, nuve_room_name=settings.NUVE_ROOM_NAME)
         response = render(request, '{}.html'.format(role_name), context)
         add_never_cache_headers(response)
     else:
