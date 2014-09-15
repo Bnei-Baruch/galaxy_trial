@@ -1,17 +1,19 @@
-var curMonitor = '#monitor1';
-var backMonitor = '#monitor2';
+var bufferList;
+var curBuffer;
+var backBuffer;
 
 $(document).ready(function(){
-    $(backMonitor).css('opacity', '0');
+	curBuffer = $('#buffer1');
+	backBuffer = $('#buffer2');
+	bufferList = [curBuffer, backBuffer];
+    backBuffer.css('opacity', '0');
 });
 
 function loadPreview(html, resizeFunc) {
-    $(backMonitor).html(html);
-     
-    $(backMonitor + ' .vid').each(function(index) {
-        var videoId = $(this)[0].id;
-        var labelElement = $('#' + videoId + ' label');
+    backBuffer.html(html);     
+    $('.vid', backBuffer).each(function(index) {        
         var videoElement = $(this);
+        var labelElement = $('label', videoElement);
         resizeFunc(videoElement, labelElement);
         $(window).resize(function() {
             resizeFunc(videoElement, labelElement);
@@ -21,13 +23,13 @@ function loadPreview(html, resizeFunc) {
 
 function showPreview()
 {
-    $(backMonitor).css('opacity', '1');
-    $(curMonitor).css('opacity', '0');
-    curMonitor = getNextMonitor(curMonitor);
-    backMonitor = getNextMonitor(backMonitor);
+    backBuffer.css('opacity', '1');
+    curBuffer.css('opacity', '0');
+    curBuffer = getNextBuffer(curBuffer);
+    backBuffer = getNextBuffer(backBuffer);
 }
 
 
-function getNextMonitor(monitorId) {
-    return (monitorId == '#monitor1' ? '#monitor2' : '#monitor1');
+function getNextBuffer(buffer) {
+    return (buffer == bufferList[0] ? bufferList[1] : bufferList[0]);
 }
