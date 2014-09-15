@@ -53,7 +53,8 @@ function onLoadCtrl ($scope, $rootScope, $translate) {
 
 onLoadCtrl.$inject = ["$scope", "$rootScope", "$translate"];
 function onLoadChatModerator() {
-  loadChatModerator(); 
+    "use strict";
+    window.chat.loadChatModerator(); 
 }
 
 onLoadChatModerator.$inject = ["$scope"];
@@ -352,4 +353,3 @@ function groupVideoCtrl ($scope, $rootScope, $timeout) {
     $scope.timeout = $timeout;
 }
 groupVideoCtrl.$inject = ["$scope","$rootScope","$timeout"];
-

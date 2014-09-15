@@ -1,11 +1,13 @@
-{% load i18n %}
+{% load i18n staticfiles %}
 <script type="text/javascript">
 <!--
 /*jshint curly:true, indent:4, strict:true*/
-define('config', [], function () {
-    "use strict";
+(function(config) {
 
-    var config = {};
+    config.chat = {
+        cssPath: "{% static 'css/chat.css' %}",
+        baseURL: "//chat1.kbb1.com/"
+    };
 
     config.broadcaster = {
         maxVideoBW: 2000,
@@ -21,6 +23,6 @@ define('config', [], function () {
     config.reloadOnDisconnectTimeout = 10000;
 
     return config;
-});
+ })(window.config = {});
 //-->
 </script>
