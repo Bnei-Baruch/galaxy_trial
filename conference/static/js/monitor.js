@@ -1,12 +1,21 @@
 /*jshint curly:true, indent:4, strict:true*/
 
-function showPreview(html, resizeFunc) {
-    $('#monitor').html(html);
+var bufferList;
+var curBuffer;
+var backBuffer;
 
-    $('.vid').each(function(index) {
-        var videoId = $(this)[0].id;
-        var labelElement = $('#' + videoId + ' label');
+$(document).ready(function(){
+	curBuffer = $('#buffer1');
+	backBuffer = $('#buffer2');
+	bufferList = [curBuffer, backBuffer];
+    backBuffer.css('opacity', '0');
+});
+
+function loadPreview(html, resizeFunc) {
+    backBuffer.html(html);     
+    $('.vid', backBuffer).each(function(index) {        
         var videoElement = $(this);
+        var labelElement = $('label', videoElement);
         resizeFunc(videoElement, labelElement);
         $(window).resize(function() {
             resizeFunc(videoElement, labelElement);
@@ -14,3 +23,15 @@ function showPreview(html, resizeFunc) {
     });
 }
 
+function showPreview()
+{
+    backBuffer.css('opacity', '1');
+    curBuffer.css('opacity', '0');
+    curBuffer = getNextBuffer(curBuffer);
+    backBuffer = getNextBuffer(backBuffer);
+}
+
+
+function getNextBuffer(buffer) {
+    return (buffer == bufferList[0] ? bufferList[1] : bufferList[0]);
+}
