@@ -116,13 +116,14 @@ function previewCtrl ($scope, $rootScope, $timeout) {
 
         // Transfer preview to monitor
         var monitor = getMonitor(monitorNumber);
-        monitor.showPreview();
+        monitor.monitor.showPreview();
     });
 
     $scope.$on("loadPreviewInMonitors", function (e, monitorNumber) {
         var previewHtml = $('#preview').clone()[0].outerHTML;
         for (var i=1; i<=$rootScope.monitorNumber; i++) {
-            $rootScope.monitors[i].loadPreview(previewHtml, $rootScope.resizeVideoLabel);
+            console.log($rootScope.monitors[i].monitor);
+            $rootScope.monitors[i].monitor.loadPreview(previewHtml, $rootScope.resizeVideoLabel);
         }
     });
 
