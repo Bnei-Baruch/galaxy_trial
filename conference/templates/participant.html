@@ -3,14 +3,15 @@
 {% load i18n staticfiles %}
 
 {% block head %}
-<script src="{% static 'js/vendor/erizo.js' %}"></script>
 <script src="{% static 'js/participant.js' %}"></script>
+<script src="{% static 'js/chat.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/chat.css' %}" />
 {% endblock%}
 
 {% block content %}
 <h1>{% trans "Participant" %}</h1>
 
-<div class="alert alert-danger" id="js-status-container" role="alert" style="display: none;"></div>
+<div class="alert alert-info" id="js-status-container" role="alert" style="display: none"></div>
 
 <div class="panel panel-default">
     <div class="panel-heading">{% trans "Local video stream" %}</div>
@@ -26,12 +27,16 @@
     {% trans "Play live stream" %}
 </button>
 
-<div id="js-remote-video" data-popup-title="{% trans "Remote stream" %}" class="hide">
+<div id="js-remote-video" class="hide">
 </div>
 
 <div id="js-settings"
     data-nuve-token="{{ nuve_token }}"
     data-participant-id="{{ request.user.username }}"
+    data-room-name="{{ nuve_room_name }}"
+    data-popup-title="{% trans "Remote stream" %}"
     class="hide">
 </div>
+
+<div id="js-chat-client"></div>
 {% endblock %}

@@ -1,0 +1,24 @@
+#js-chat-client {
+    width: 700px;
+    height: 400px;
+    margin:0 auto;
+}
+
+#js-chat-moderator {
+    width: 100%;
+    height: 600px;
+    margin:0 auto;
+}
+
+/* Admin page */
+.sidebar { display: none; width: 39%; float: right; }
+.content { width: 100%; }
+.cancelBtn { display: none; }
+#askForm #from { display: none; }
+#askForm #name { display: none; }
+#questionsList .fromQ { display: none; }
+#questionsList .timeQ { display: none; }
+h3 { display: none; }
+
+#questionsList .adminDisallow { display: none; }
+#questionsList .adminRemove { display: none; }

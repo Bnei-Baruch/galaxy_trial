@@ -1,32 +1,30 @@
-/*jshint indent:4, strict:true*/
+/*jshint curly:true, indent:4, strict:true*/
 
-var room, localStream;
+require(
+    ['jquery', 'config', 'base-broadcaster'],
+    function($, config, BaseBroadcaster) {
+        "use strict";
 
-$(function () {
-    "use strict";
+        // Inheriting from base broadcaster
+        var Broadcaster = BaseBroadcaster;
 
-    var nuveData = $('#js-nuve-data').data();
+        var licodeHandlers = {
+            onCameraAccessAccepted: function (that) {
+                that.streamToBroadcast.play('js-local-video');
+            }
+        };
 
-    // Monkey-patching Erizo player to disable control bar display
-    Erizo.Bar = function () {this.display = this.hide = function () {};};
+        Broadcaster.prototype.createStreamToBroadcast = function () {
+            var stream = Erizo.Stream({
+                audio: true,
+                video: true,
+                attributes: {role: 'broadcaster'},
+                videoSize: config.broadcaster.videoSize
+            }); 
+            return stream;
+        };
 
-    localStream = Erizo.Stream({
-        audio: true,
-        video: true,
-        attributes: {role: 'broadcaster'},
-        videoSize: [640, 480, 640, 480]
-    }); 
-
-    var room = Erizo.Room({token: nuveData.token});
-
-    localStream.addEventListener('access-accepted', function () {
-        room.connect();
-        localStream.play('js-local-video');
-    }); 
-
-    room.addEventListener('room-connected', function (roomEvent) {
-        room.publish(localStream, {maxVideoBW: 450});
-    }); 
-
-    localStream.init();
-});
+        var broadcaster = new Broadcaster({
+            maxVideoBW: config.broadcaster.maxVideoBW
+        }, licodeHandlers);
+    });

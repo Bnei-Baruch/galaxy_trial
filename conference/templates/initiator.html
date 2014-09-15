@@ -21,6 +21,7 @@
 	<script type="text/javascript">try{Typekit.load();}catch(e){}</script!-->
 	<!-- Simple Grid -->
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chat.css' %}" />
 </head>
 <body data-nuve-token="{{ nuve_token }}" onload ng-controller="onLoadCtrl" ng-keydown="keyDown($event)"  ng-keyup="keyUp($event)">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
@@ -31,9 +32,11 @@
     <script src="{% static 'js/vendor/angular-translate-loader-static-files.min.js' %}"></script>
     <!--script src="{% static 'js/vendor/angular-dragdrop.min.js' %}"></script-->
     <script src="{% static 'js/vendor/erizo.js' %}"></script>
+    <script src="{% static 'js/disable-erizo-bar.js' %}"></script>
     <script src="{% static 'js/module.js' %}"></script>
     <script src="{% static 'js/services.js' %}"></script>
     <script src="{% static 'js/controllers.js' %}"></script>
     <script src="{% static 'js/directives.js' %}"></script>
+    <script src="{% static 'js/chat.js' %}"></script>
 </body>
 </html>

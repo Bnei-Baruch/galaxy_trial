@@ -1,3 +1,5 @@
+/*jshint curly:true, indent:4, strict:true*/
+
 var bufferList;
 var curBuffer;
 var backBuffer;
