@@ -3,8 +3,9 @@
 {% load i18n staticfiles %}
 
 {% block head %}
+<script src="{% static 'js/hacks/set-undocumented-flags.js' %}"></script>
 <script src="{% static 'js/vendor/erizo.js' %}"></script>
-<script src="{% static 'js/disable-erizo-bar.js' %}"></script>
+<script src="{% static 'js/hacks/disable-erizo-bar.js' %}"></script>
 <script src="{% static 'js/base-broadcaster.js' %}"></script>
 {% block subhead %}
 {% endblock%}
