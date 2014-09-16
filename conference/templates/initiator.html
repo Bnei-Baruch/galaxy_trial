@@ -15,19 +15,16 @@
     <link rel="stylesheet" href="{% static 'SimpleGrid/css/720_grid.css' %}" type="text/css" media="screen and (min-width: 720px)" />
 	<link rel="stylesheet" href="{% static 'SimpleGrid/css/986_grid.css' %}" type="text/css" media="screen and (min-width: 986px)" />
 	<link rel="stylesheet" href="{% static 'SimpleGrid/css/1236_grid.css' %}" media="screen and (min-width: 1236px)" />
-    <!--script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script-->
-	<!--script type="text/javascript" src="http://use.typekit.com/fti4bos.js"></script>
-	<script type="text/javascript">try{Typekit.load();}catch(e){}</script!-->
 	<!-- Simple Grid -->
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
     <link rel="stylesheet" href="{% static 'css/chat.css' %}" />
+
+    {% include "js_config.html" %}
 </head>
 <body data-nuve-token="{{ nuve_token }}" onload ng-controller="onLoadCtrl" ng-keydown="keyDown($event)"  ng-keyup="keyUp($event)">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
   	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.14/angular.min.js"></script>
     <script src="//code.angularjs.org/1.2.14/angular-route.min.js"></script>
-    <script src="//jwpsrv.com/library/ElAvGDL5EeKp9yIACp8kUw.js"></script>
     <script src="{% static 'js/vendor/angular-translate.min.js' %}"></script>
     <script src="{% static 'js/vendor/angular-translate-loader-static-files.min.js' %}"></script>
     <!--script src="{% static 'js/vendor/angular-dragdrop.min.js' %}"></script-->

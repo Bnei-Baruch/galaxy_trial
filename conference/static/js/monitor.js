@@ -1,37 +1,39 @@
 /*jshint curly:true, indent:4, strict:true*/
 
-var bufferList;
-var curBuffer;
-var backBuffer;
+(function($, monitor) {
+    "use strict";
 
-$(document).ready(function(){
-	curBuffer = $('#buffer1');
-	backBuffer = $('#buffer2');
-	bufferList = [curBuffer, backBuffer];
-    backBuffer.css('opacity', '0');
-});
+    var bufferList;
+    var currBuffer;
+    var backBuffer;
 
-function loadPreview(html, resizeFunc) {
-    backBuffer.html(html);     
-    $('.vid', backBuffer).each(function(index) {        
-        var videoElement = $(this);
-        var labelElement = $('label', videoElement);
-        resizeFunc(videoElement, labelElement);
-        $(window).resize(function() {
-            resizeFunc(videoElement, labelElement);
-        });
+    $(document).ready(function(){
+        currBuffer = $('#buffer1');
+        backBuffer = $('#buffer2');
+        bufferList = [currBuffer, backBuffer];
+        backBuffer.css('opacity', '0');
     });
-}
 
-function showPreview()
-{
-    backBuffer.css('opacity', '1');
-    curBuffer.css('opacity', '0');
-    curBuffer = getNextBuffer(curBuffer);
-    backBuffer = getNextBuffer(backBuffer);
-}
+    monitor.loadPreview = function (html, resizeFunc) {
+        backBuffer.html(html);     
+        $('.vid', backBuffer).each(function(index) {        
+            var videoElement = $(this);
+            var labelElement = $('label', videoElement);
+            resizeFunc(videoElement, labelElement);
+            $(window).resize(function() {
+                resizeFunc(videoElement, labelElement);
+            });
+        });
+    };
 
+    monitor.showPreview = function () {
+        backBuffer.css('opacity', '1');
+        currBuffer.css('opacity', '0');
+        currBuffer = getNextBuffer(currBuffer);
+        backBuffer = getNextBuffer(backBuffer);
+    };
 
-function getNextBuffer(buffer) {
-    return (buffer == bufferList[0] ? bufferList[1] : bufferList[0]);
-}
+    function getNextBuffer(buffer) {
+        return (buffer == bufferList[0] ? bufferList[1] : bufferList[0]);
+    }
+})(jQuery, window.monitor = {});

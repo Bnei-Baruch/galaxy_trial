@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% load i18n staticfiles %}
+
+{% block head %}
+<script src="{% static 'js/vendor/erizo.js' %}"></script>
+<script src="{% static 'js/disable-erizo-bar.js' %}"></script>
+<script src="{% static 'js/base-broadcaster.js' %}"></script>
+{% block subhead %}
+{% endblock%}
+{% endblock%}
+
+{% block content %}
+<h1>{% block title %}{% endblock %}</h1>
+
+<div class="alert alert-info" id="js-status-container" role="alert" style="display: none"></div>
+
+<div class="panel panel-default">
+    <div class="panel-heading">{% trans "Local video stream" %}</div>
+    <div class="panel-body">
+        <div id="js-local-video" class="local-video"></div>
+    </div>
+</div>
+
+{% block controls %}
+{% endblock %}
+
+{% endblock %}
+
