@@ -9,15 +9,15 @@
     webkitRTCPeerConnection = function (configuration, constraints) {
         var customConstraints = {
             mandatory: {
-                DtlsSrtpKeyAgreement: false,
+                DtlsSrtpKeyAgreement: true,
                 RtpDataChannels: true
             },
-            optional: {
-                googSkipEncodingUnusedStreams: true,
-                googImprovedWifiBwe: true,
-                googHighBitrate: true,
-                googVeryHighBitrate: true
-            }
+            optional: [
+                {googSkipEncodingUnusedStreams: true},
+                {googImprovedWifiBwe: true},
+                {googHighBitrate: true},
+                {googVeryHighBitrate: true}
+            ]
         };
         return new OrigPeerConnection(configuration, customConstraints);
     };

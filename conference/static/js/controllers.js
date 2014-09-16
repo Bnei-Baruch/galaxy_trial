@@ -122,7 +122,6 @@ function previewCtrl ($scope, $rootScope, $timeout) {
     $scope.$on("loadPreviewInMonitors", function (e, monitorNumber) {
         var previewHtml = $('#preview').clone()[0].outerHTML;
         for (var i=1; i<=$rootScope.monitorNumber; i++) {
-            console.log($rootScope.monitors[i].monitor);
             $rootScope.monitors[i].monitor.loadPreview(previewHtml, $rootScope.resizeVideoLabel);
         }
     });
