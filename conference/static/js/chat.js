@@ -31,9 +31,10 @@
                     '&css=' + location.origin + config.chat.cssPath +
                     '&auto_approve=true' +
                     '&from_text=Shidur' +
-                    '&name_text=Moderator' +
+                    '&name_text=Technical Support' +
                     '&alert_on_empty_to=true' +
                     '&static_form=true' +
+                    '&buzzer=true' +
                     '"></iframe>');
         }
     };

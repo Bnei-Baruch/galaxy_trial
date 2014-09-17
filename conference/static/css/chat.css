@@ -14,11 +14,18 @@
 .sidebar { display: none; width: 39%; float: right; }
 .content { width: 100%; }
 .cancelBtn { display: none; }
+.info { display: none; }
 #askForm #from { display: none; }
 #askForm #name { display: none; }
 #questionsList .fromQ { display: none; }
-#questionsList .timeQ { display: none; }
+/* #questionsList .timeQ { display: none; } */
 h3 { display: none; }
 
 #questionsList .adminDisallow { display: none; }
 #questionsList .adminRemove { display: none; }
+
+/* Move send button to corner */
+.sendBtn { position: absolute; right: 5px; top: 10px; height: 53px; }
+#askForm #message { height: 25px; }
+#askForm input, #askForm textarea { max-width: none; width: 84%; }
+
