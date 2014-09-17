@@ -29,26 +29,3 @@ h3 { display: none; }
 #askForm #message { height: 25px; }
 #askForm input, #askForm textarea { max-width: none; width: 84%; }
 
-/* Animate each new question */
-@keyframes questionBackgroundFadeOut {
-0% {
-  opacity:1;
-}
-45% {
-opacity:1;
-}
-55% {
-opacity:0;
-}
-100% {
-opacity:0;
-}
-}
-
-.itemQ {
-animation-name: questionBackgroundFadeOut;
-animation-timing-function: ease-in-out;
-animation-iteration-count: infinite;
-animation-duration: 10s;
-animation-direction: alternate;
-}
