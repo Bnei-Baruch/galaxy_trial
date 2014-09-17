@@ -4,7 +4,7 @@ $(function() {
   if (chatClient.size() > 0) {
     chatClient.append(
         '<iframe scrolling="yes" style="width: 100%; height: 100%;" ' +
-        'src="https://chat1.kbb1.com/?label=shidur_' + settings.participantId +
+        'src="' + location.protocol + '//chat1.kbb1.com/?label=shidur_' + settings.participantId +
         '&css=' + location.origin + '/static/css/chat.css' +
         '&auto_approve=true' +
         '&from_text=Participant' +
@@ -19,11 +19,11 @@ function loadChatModerator() {
   if (chatModerator.size() > 0) {
     chatModerator.append(
         '<iframe scrolling="yes" style="width: 100%; height: 100%;" ' +
-        'src="https://chat1.kbb1.com/admin.html?label=shidur_*' +
+        'src="' + location.protocol + '//chat1.kbb1.com/admin.html?label=shidur_*' +
         '&css=' + location.origin + '/static/css/chat.css' +
         '&auto_approve=true' +
         '&from_text=Shidur' +
-        '&name_text=Moderator' +
+        '&name_text=Technical Support' +
         '&alert_on_empty_to=true' +
         '&static_form=true' +
         '"></iframe>');
