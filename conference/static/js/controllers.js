@@ -53,7 +53,8 @@ function onLoadCtrl ($scope, $rootScope, $translate) {
 
 onLoadCtrl.$inject = ["$scope", "$rootScope", "$translate"];
 function onLoadChatModerator() {
-  loadChatModerator(); 
+    "use strict";
+    window.chat.loadChatModerator(); 
 }
 
 onLoadChatModerator.$inject = ["$scope"];
@@ -77,22 +78,22 @@ function bodyCtrl ($scope, $rootScope) {
 }
 bodyCtrl.$inject = ["$scope","$rootScope"];
 
-function previewCtrl ($scope, $rootScope) {
+function previewCtrl ($scope, $rootScope, $timeout) {
     "use strict";
 
     $scope.previewList = [];
 
     $scope.previewHtml = '';
     $scope.showTitle = false;
+ 	$scope.timeout = $timeout;
+
     $scope.$on("showGroupPreview", function (e, group) {
         $scope.previewList = [group];
         $rootScope.$broadcast('videoResize');
-        //$scope.$apply();
     });
     $scope.$on("showPresetPreview", function (e, preset) {
         $scope.previewList = preset.groups;
         $rootScope.$broadcast('videoResize');
-        //$scope.$apply();
     });
     $scope.$on("transferPreviewToMonitor", function (e, monitorNumber) {
         // Check if there is a need to unbind videos that is currently on the monitor
@@ -115,8 +116,14 @@ function previewCtrl ($scope, $rootScope) {
 
         // Transfer preview to monitor
         var monitor = getMonitor(monitorNumber);
+        monitor.monitor.showPreview();
+    });
+
+    $scope.$on("loadPreviewInMonitors", function (e, monitorNumber) {
         var previewHtml = $('#preview').clone()[0].outerHTML;
-        monitor.showPreview(previewHtml, $rootScope.resizeVideoLabel);
+        for (var i=1; i<=$rootScope.monitorNumber; i++) {
+            $rootScope.monitors[i].monitor.loadPreview(previewHtml, $rootScope.resizeVideoLabel);
+        }
     });
 
     $rootScope.resizeVideoLabel = function(videoElement, labelElement) {
@@ -153,7 +160,7 @@ function previewCtrl ($scope, $rootScope) {
         return false;
     };
 }
-previewCtrl.$inject = ["$scope","$rootScope"];
+previewCtrl.$inject = ["$scope","$rootScope","$timeout"];
 
 function presetsCtrl ($scope,$rootScope,GetPresets) {
     "use strict";
@@ -352,4 +359,3 @@ function groupVideoCtrl ($scope, $rootScope, $timeout) {
     $scope.timeout = $timeout;
 }
 groupVideoCtrl.$inject = ["$scope","$rootScope","$timeout"];
-

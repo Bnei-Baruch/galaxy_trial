@@ -1,22 +1,21 @@
-{% extends "base.html" %}
+{% extends "base_broadcaster.html" %}
 
 {% load i18n staticfiles %}
 
-{% block head %}
+{% block subhead %}
 <script src="{% static 'js/broadcaster.js' %}"></script>
+<style>
+.local-video {
+    width: 720px;
+    height: 576px;
+}
+</style>
 {% endblock%}
 
-{% block content %}
-<h1>{% trans "Broadcaster" %}</h1>
+{% block title %}
+{% trans "Broadcaster" %}
+{% endblock %}
 
-<div class="alert alert-info" id="js-status-container" role="alert" style="display: none"></div>
-
-<div class="panel panel-default">
-    <div class="panel-heading">{% trans "Local video stream" %}</div>
-    <div class="panel-body">
-        <div id="js-local-video" style="width: 720px; height: 576px;"></div>
-    </div>
-</div>
-
+{% block controls %}
 <div id="js-nuve-config" data-token="{{ nuve_token }}" class="hide"></div>
 {% endblock %}
