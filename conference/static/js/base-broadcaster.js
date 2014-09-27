@@ -159,6 +159,7 @@ window.BaseBroadcaster = (function ($, config) {
      * @param stream: Erizo stream
      * */
     BaseBroadcaster.prototype.reloadOnDisconnect = function (stream) {
+        var that = this;
         var originalHandler = stream.pc.peerConnection.oniceconnectionstatechange;
         stream.pc.peerConnection.oniceconnectionstatechange = function (e) {
             if (e.target.iceConnectionState == 'disconnected') {
