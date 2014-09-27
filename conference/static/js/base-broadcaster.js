@@ -162,7 +162,7 @@ window.BaseBroadcaster = (function ($, config) {
         var originalHandler = stream.pc.peerConnection.oniceconnectionstatechange;
         stream.pc.peerConnection.oniceconnectionstatechange = function (e) {
             if (e.target.iceConnectionState == 'disconnected') {
-                waitAndReload();
+                that.waitAndReload();
             }
             originalHandler(e);
         };
