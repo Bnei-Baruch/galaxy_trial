@@ -1,3 +1,5 @@
+/*jshint curly:true, indent:4, strict:true*/
+
 var webrtc = angular.module('webrtc', ['ngRoute', 'pascalprecht.translate']);
 
 webrtc.run(function($rootScope) {

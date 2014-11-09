@@ -63,3 +63,5 @@ docs/_build/
 
 # Local settings
 galaxy_trial/local_settings.py
+
+conference/static/admin

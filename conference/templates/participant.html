@@ -1,24 +1,24 @@
-{% extends "base.html" %}
+{% extends "base_broadcaster.html" %}
 
 {% load i18n staticfiles %}
 
-{% block head %}
-<script src="{% static 'js/vendor/erizo.js' %}"></script>
+{% block subhead %}
+<link rel="stylesheet" href="{% static 'css/chat.css' %}" />
+<script src="{% static 'js/chat.js' %}"></script>
 <script src="{% static 'js/participant.js' %}"></script>
+<style>
+.local-video {
+    width: 640px;
+    height: 480px;
+}
+</style>
 {% endblock%}
 
-{% block content %}
-<h1>{% trans "Participant" %}</h1>
+{% block title %}
+{% trans "Participant" %}
+{% endblock %}
 
-<div class="alert alert-danger" id="js-status-container" role="alert" style="display: none;"></div>
-
-<div class="panel panel-default">
-    <div class="panel-heading">{% trans "Local video stream" %}</div>
-    <div class="panel-body">
-        <div id="js-local-video" style="width: 640px; height: 480px;"></div>
-    </div>
-</div>
-
+{% block controls %}
 <button id="js-play-remote-button"
     class="btn btn-primary btn-lg"
     data-loading-text="{% trans "Waiting for remote stream..." %}"
@@ -26,12 +26,14 @@
     {% trans "Play live stream" %}
 </button>
 
-<div id="js-remote-video" data-popup-title="{% trans "Remote stream" %}" class="hide">
+<div id="js-remote-video" class="hide">
 </div>
 
-<div id="js-settings"
-    data-nuve-token="{{ nuve_token }}"
-    data-participant-id="{{ request.user.username }}"
+<div id="js-nuve-config"
+    data-token="{{ nuve_token }}"
+    data-user-id="{{ request.user.username }}"
     class="hide">
 </div>
+
+<div id="js-chat-client"></div>
 {% endblock %}

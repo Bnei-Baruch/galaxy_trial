@@ -1,3 +1,5 @@
+/*jshint curly:true, indent:4, strict:true*/
+
 webrtc.directive("onload", function () {
     return {
         scope: {},
@@ -144,8 +146,10 @@ webrtc.directive("groupVideo", function ($rootScope) {
                     $scope.$on("videoResize", function (e, preset) {
                         $scope.timeout(function() {
                             $rootScope.resizeVideoLabel(videoElement, labelElement);
+                            $rootScope.$broadcast('loadPreviewInMonitors');
                         });
                     });
+                    $rootScope.$broadcast('loadPreviewInMonitors');
                 });
             }
 
@@ -156,6 +160,8 @@ webrtc.directive("groupVideo", function ($rootScope) {
             });
 
             $scope.$on('$destroy', function() {
+                $rootScope.$broadcast('loadPreviewInMonitors');
+
                 if (isGroupOnMonitor(attrs.videoId)) {
                     console.log("Skip destroy video (ElementId:" + attrs.id + ' participantId:' + attrs.videoId + ' because it is on monitor');
                     return;
