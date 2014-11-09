@@ -18,7 +18,7 @@ $(function () {
     var subscribedToRemoteStream = false;
 
     var broadcastingStream = Erizo.Stream({
-        audio: false,
+        audio: true,
         video: true,
         data: false,
         attributes: {participantID: settings.participantId, role: 'participant'},
