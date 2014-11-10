@@ -1,11 +1,15 @@
 <div class="title">Groups</div>
 <div class="view">
-	<div ng-repeat="group in groupList | filter: isGroupConnected | orderBy : 'name'" 
+	<div ng-repeat="group in groupList | filter: isGroupConnected | orderBy : 'name'"
 		 ng-class="{ 'selected': group == selectedGroup, 'group-in-preset': isGroupInPresets(group) }"
          ng-click="groupClicked(group)"
          class="group">
 		<img src='/static/images/connected.png' />
 		{{ group.name }}
+		<div class="volume" ng-if="group.isPlaying">
+			<input type="checkbox" ng-model="audioEnabled" ng-change="enableAudio(group, audioEnabled)" ng-click="$event.stopPropagation()" />
+			<img src='/static/images/volume.png' />			
+		</div>
 	</div>
 	<div ng-repeat="group in groupList | filter: isGroupConnecting | orderBy : 'name'" 
 		 ng-class="{ 'selected': group == selectedGroup, 'group-in-preset': isGroupInPresets(group) }"

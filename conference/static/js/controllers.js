@@ -296,6 +296,10 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
         return group.state == 'disconnected';
     };
 
+    $scope.enableAudio = function (group, audioEnabled) {
+        $rootScope.$broadcast('enableAudio', group, audioEnabled);
+    }
+
     GetGroups.then(function (data) {
         $scope.groupList = data.data.groups;
         for (var i=0; i < $scope.groupList.length; i++) {
@@ -329,6 +333,8 @@ function groupsCtrl ($scope, $rootScope, GetGroups) {
         $rootScope.room.addEventListener('stream-subscribed', function(streamEvent) {
             var participantID = streamEvent.stream.getAttributes().participantID;
             setGroupState(participantID, 'connected');
+            streamEvent.stream.stream.getAudioTracks()[0].enabled = false;
+
         });
 
         $rootScope.room.addEventListener('stream-added', function (streamEvent) {
