@@ -18,6 +18,7 @@
                 '&from_text=Participant' +
                 '&name_text=' + nuveConfig.userId +
                 '&static_form=true' +
+                '&buzzer=true' +
                 '"></iframe>');
         }
     });
