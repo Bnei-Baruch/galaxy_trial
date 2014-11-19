@@ -1,1 +1,0 @@
-/home/guya/Development/galaxy_trial/galaxy_trial/static/js/jquery-2.1.1.js
