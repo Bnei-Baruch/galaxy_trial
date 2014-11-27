@@ -8,6 +8,7 @@
 
     var licodeHandlers = {
         onCameraAccessAccepted: function (that) {
+            $('#js-local-video').html('');
             that.streamToBroadcast.play('js-local-video');
         }
     };

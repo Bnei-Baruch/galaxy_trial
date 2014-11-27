@@ -105,6 +105,8 @@ TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
 
 # Authentication
 
+AUTH_USER_MODEL = 'galaxy_trial.GalaxyUser'
+
 LOGIN_URL = '/auth/login'
 
 LOGOUT_URL = '/auth/logout'
