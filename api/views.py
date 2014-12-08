@@ -2,7 +2,8 @@ import json
 
 from django.http import HttpResponse
 from django.views.generic import View
-from django.contrib.auth.models import User
+
+from galaxy_trial.models import GalaxyUser
 
 
 class BaseAPIView(View):
@@ -14,7 +15,7 @@ class BaseAPIView(View):
 
 class Participants(BaseAPIView):
     def get(self, request):
-        participants = User.objects.filter(groups__name='participant')
+        participants = GalaxyUser.objects.filter(groups__name='participant')
         result = {
             'groups': [{
                 'id': participant.username,
