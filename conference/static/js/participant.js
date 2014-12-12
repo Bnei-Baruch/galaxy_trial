@@ -117,9 +117,9 @@
     };
 
     Participant.prototype.createPopup = function () {
-        this.remoteStreamPopup = window.open(undefined, undefined, 'width=1024,height=768');
+        this.remoteStreamPopup = window.open(undefined, undefined, 'width=1280,height=720');
         this.remoteStreamPopup.document.write("<title>" + config.participant.monitorPopupTitle + "</title>");
-        this.remoteStreamPopup.document.write("<body style='background: #777; margin: 0; cursor: none;'></body>");
+        this.remoteStreamPopup.document.write("<body style='background: #777; margin: 0;'></body>");
         this.bindPopupEvents();
     };
 
