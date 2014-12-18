@@ -14,9 +14,23 @@
     };
 
     Broadcaster.prototype.createStreamToBroadcast = function () {
+        var width = config.broadcaster.videoWidth;
+        var height = config.broadcaster.videoHeight;
+
+        var videoOpt = {
+            mandatory: {
+                minWidth: width,
+                minHeight: height,
+                maxWidth: width,
+                maxHeight: height,
+                minAspectRatio: width / height,
+                maxAspectRatio: width / height
+            }
+        };
+
         var stream = Erizo.Stream({
             audio: true,
-            video: true,
+            video: videoOpt,
             attributes: {role: 'broadcaster'},
             videoSize: config.broadcaster.videoSize
         }); 
