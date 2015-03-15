@@ -3929,6 +3929,7 @@ Erizo.ChromeStableStack = function (spec) {
         "iceServers": []
     };
 
+
     that.con = {'optional': [{'DtlsSrtpKeyAgreement': true}]};
 
     if (spec.stunServerUrl !== undefined) {
@@ -3939,167 +3940,47 @@ Erizo.ChromeStableStack = function (spec) {
         that.pc_config.iceServers.push({"username": spec.turnServer.username, "credential": spec.turnServer.password, "url": spec.turnServer.url});
     }
 
-    if (spec.audio === undefined || spec.nop2p) {
+    if (spec.audio === undefined) {
         spec.audio = true;
     }
 
-    if (spec.video === undefined || spec.nop2p) {
+    if (spec.video === undefined) {
         spec.video = true;
     }
 
     that.mediaConstraints = {
-        'mandatory': {
+        mandatory : {
             'OfferToReceiveVideo': spec.video,
             'OfferToReceiveAudio': spec.audio
         }
     };
-
-    that.roapSessionId = 103;
+    
+    var errorCallback = function(message){
+      console.log("Error in Stack ", message);
+    }
 
     that.peerConnection = new WebkitRTCPeerConnection(that.pc_config, that.con);
-
-    that.peerConnection.onicecandidate = function (event) {
-        L.Logger.debug("PeerConnection: ", spec.session_id);
-        if (!event.candidate) {
-            // At the moment, we do not renegotiate when new candidates
-            // show up after the more flag has been false once.
-            L.Logger.debug("State: " + that.peerConnection.iceGatheringState);
-
-            if (that.ices === undefined) {
-                that.ices = 0;
-            }
-            that.ices = that.ices + 1;
-            if (that.ices >= 1 && that.moreIceComing) {
-                that.moreIceComing = false;
-                that.markActionNeeded();
-            }
-        } else {
-            that.iceCandidateCount += 1;
-        }
-    };
-
-    //L.Logger.debug("Created webkitRTCPeerConnnection with config \"" + JSON.stringify(that.pc_config) + "\".");
-
+    
     var setMaxBW = function (sdp) {
-        if (spec.maxVideoBW) {
+        if (spec.video && spec.maxVideoBW) {
             var a = sdp.match(/m=video.*\r\n/);
+            if (a == null){
+              a = sdp.match(/m=video.*\n/);
+            }
             var r = a[0] + "b=AS:" + spec.maxVideoBW + "\r\n";
             sdp = sdp.replace(a[0], r);
         }
 
-        if (spec.maxAudioBW) {
+        if (spec.audio && spec.maxAudioBW) {
             var a = sdp.match(/m=audio.*\r\n/);
+            if (a == null){
+              a = sdp.match(/m=audio.*\n/);
+            }
             var r = a[0] + "b=AS:" + spec.maxAudioBW + "\r\n";
             sdp = sdp.replace(a[0], r);
         }
 
         return sdp;
-    };
-
-    /**
-     * This function processes signalling messages from the other side.
-     * @param {string} msgstring JSON-formatted string containing a ROAP message.
-     */
-    that.processSignalingMessage = function (msgstring) {
-        // Offer: Check for glare and resolve.
-        // Answer/OK: Remove retransmit for the msg this is an answer to.
-        // Send back "OK" if this was an Answer.
-        L.Logger.debug('Activity on conn ' + that.sessionId);
-        var msg = JSON.parse(msgstring), sd, regExp, exp;
-        that.incomingMessage = msg;
-
-        if (that.state === 'new') {
-            if (msg.messageType === 'OFFER') {
-                // Initial offer.
-                sd = {
-                    sdp: msg.sdp,
-                    type: 'offer'
-                };
-                that.peerConnection.setRemoteDescription(new RTCSessionDescription(sd));
-
-                that.state = 'offer-received';
-                // Allow other stuff to happen, then reply.
-                that.markActionNeeded();
-            } else {
-                that.error('Illegal message for this state: ' + msg.messageType + ' in state ' + that.state);
-            }
-
-        } else if (that.state === 'offer-sent') {
-            if (msg.messageType === 'ANSWER') {
-
-                //regExp = new RegExp(/m=video[\w\W]*\r\n/g);
-
-                //exp = msg.sdp.match(regExp);
-                //L.Logger.debug(exp);
-
-                //msg.sdp = msg.sdp.replace(regExp, exp + "b=AS:100\r\n");
-
-                sd = {
-                    sdp: msg.sdp,
-                    type: 'answer'
-                };
-                L.Logger.debug("Received ANSWER: ", sd.sdp);
-
-                sd.sdp = setMaxBW(sd.sdp);
-
-                that.peerConnection.setRemoteDescription(new RTCSessionDescription(sd));
-                that.sendOK();
-                that.state = 'established';
-
-            } else if (msg.messageType === 'pr-answer') {
-                sd = {
-                    sdp: msg.sdp,
-                    type: 'pr-answer'
-                };
-                that.peerConnection.setRemoteDescription(new RTCSessionDescription(sd));
-
-                // No change to state, and no response.
-            } else if (msg.messageType === 'offer') {
-                // Glare processing.
-                that.error('Not written yet');
-            } else {
-                that.error('Illegal message for this state: ' + msg.messageType + ' in state ' + that.state);
-            }
-
-        } else if (that.state === 'established') {
-            if (msg.messageType === 'OFFER') {
-                // Subsequent offer.
-                sd = {
-                    sdp: msg.sdp,
-                    type: 'offer'
-                };
-                that.peerConnection.setRemoteDescription(new RTCSessionDescription(sd));
-
-                that.state = 'offer-received';
-                // Allow other stuff to happen, then reply.
-                that.markActionNeeded();
-            } else {
-                that.error('Illegal message for this state: ' + msg.messageType + ' in state ' + that.state);
-            }
-        }
-    };
-
-    /**
-     * Adds a stream - this causes signalling to happen, if needed.
-     * @param {MediaStream} stream The outgoing MediaStream to add.
-     */
-    that.addStream = function (stream) {
-        that.peerConnection.addStream(stream);
-        that.markActionNeeded();
-    };
-
-    /**
-     * Removes a stream.
-     * @param {MediaStream} stream The MediaStream to remove.
-     */
-    that.removeStream = function (stream) {
-//        var i;
-//        for (i = 0; i < that.peerConnection.localStreams.length; ++i) {
-//            if (that.localStreams[i] === stream) {
-//                that.localStreams[i] = null;
-//            }
-//        }
-        that.markActionNeeded();
     };
 
     /**
@@ -4110,163 +3991,24 @@ Erizo.ChromeStableStack = function (spec) {
         that.peerConnection.close();
     };
 
-    /**
-     * Internal function: Mark that something happened.
-     */
-    that.markActionNeeded = function () {
-        that.actionNeeded = true;
-        that.doLater(function () {
-            that.onstablestate();
-        });
-    };
+    spec.localCandidates = [];
 
-    /**
-     * Internal function: Do something later (not on this stack).
-     * @param {function} what Callback to be executed later.
-     */
-    that.doLater = function (what) {
-        // Post an event to myself so that I get called a while later.
-        // (needs more JS/DOM info. Just call the processing function on a delay
-        // for now.)
-        window.setTimeout(what, 1);
-    };
+    that.peerConnection.onicecandidate =  function (event) {
+        if (event.candidate) {
 
-    /**
-     * Internal function called when a stable state
-     * is entered by the browser (to allow for multiple AddStream calls or
-     * other interesting actions).
-     * This function will generate an offer or answer, as needed, and send
-     * to the remote party using our onsignalingmessage function.
-     */
-    that.onstablestate = function () {
-        var mySDP, roapMessage = {};
-        if (that.actionNeeded) {
-            if (that.state === 'new' || that.state === 'established') {
-                // See if the current offer is the same as what we already sent.
-                // If not, no change is needed.   
+            if (!event.candidate.candidate.match(/a=/)) {
+                event.candidate.candidate ="a="+event.candidate.candidate;
+            };
 
-                that.peerConnection.createOffer(function (sessionDescription) {
-
-                    //sessionDescription.sdp = newOffer.replace(/a=ice-options:google-ice\r\n/g, "");
-                    //sessionDescription.sdp = newOffer.replace(/a=crypto:0 AES_CM_128_HMAC_SHA1_80 inline:.*\r\n/g, "a=crypto:0 AES_CM_128_HMAC_SHA1_80 inline:eUMxlV2Ib6U8qeZot/wEKHw9iMzfKUYpOPJrNnu3\r\n");
-                    //sessionDescription.sdp = newOffer.replace(/a=crypto:1 AES_CM_128_HMAC_SHA1_80 inline:.*\r\n/g, "a=crypto:1 AES_CM_128_HMAC_SHA1_80 inline:eUMxlV2Ib6U8qeZot/wEKHw9iMzfKUYpOPJrNnu3\r\n");
-
-                    sessionDescription.sdp = setMaxBW(sessionDescription.sdp);
-                    L.Logger.debug("Changed", sessionDescription.sdp);
-
-                    var newOffer = sessionDescription.sdp;
-
-                    if (newOffer !== that.prevOffer) {
-
-                        that.peerConnection.setLocalDescription(sessionDescription);
-
-                        that.state = 'preparing-offer';
-                        that.markActionNeeded();
-                        return;
-                    } else {
-                        L.Logger.debug('Not sending a new offer');
-                    }
-
-                }, null, that.mediaConstraints);
-
-
-            } else if (that.state === 'preparing-offer') {
-                // Don't do anything until we have the ICE candidates.
-                if (that.moreIceComing) {
-                    return;
-                }
-
-
-                // Now able to send the offer we've already prepared.
-                that.prevOffer = that.peerConnection.localDescription.sdp;
-                L.Logger.debug("Sending OFFER: " + that.prevOffer);
-                //L.Logger.debug('Sent SDP is ' + that.prevOffer);
-                that.sendMessage('OFFER', that.prevOffer);
-                // Not done: Retransmission on non-response.
-                that.state = 'offer-sent';
-
-            } else if (that.state === 'offer-received') {
-
-                that.peerConnection.createAnswer(function (sessionDescription) {
-                    that.peerConnection.setLocalDescription(sessionDescription);
-                    that.state = 'offer-received-preparing-answer';
-
-                    if (!that.iceStarted) {
-                        var now = new Date();
-                        L.Logger.debug(now.getTime() + ': Starting ICE in responder');
-                        that.iceStarted = true;
-                    } else {
-                        that.markActionNeeded();
-                        return;
-                    }
-
-                }, null, that.mediaConstraints);
-
-            } else if (that.state === 'offer-received-preparing-answer') {
-                if (that.moreIceComing) {
-                    return;
-                }
-
-                mySDP = that.peerConnection.localDescription.sdp;
-
-                that.sendMessage('ANSWER', mySDP);
-                that.state = 'established';
+            if (spec.remoteDescriptionSet) {
+                spec.callback({type:'candidate', candidate: event.candidate});
             } else {
-                that.error('Dazed and confused in state ' + that.state + ', stopping here');
+                spec.localCandidates.push(event.candidate);
+                console.log("Local Candidates stored: ", spec.localCandidates.length, spec.localCandidates);
             }
-            that.actionNeeded = false;
-        }
-    };
 
-    /**
-     * Internal function to send an "OK" message.
-     */
-    that.sendOK = function () {
-        that.sendMessage('OK');
-    };
-
-    /**
-     * Internal function to send a signalling message.
-     * @param {string} operation What operation to signal.
-     * @param {string} sdp SDP message body.
-     */
-    that.sendMessage = function (operation, sdp) {
-        var roapMessage = {};
-        roapMessage.messageType = operation;
-        roapMessage.sdp = sdp; // may be null or undefined
-        if (operation === 'OFFER') {
-            roapMessage.offererSessionId = that.sessionId;
-            roapMessage.answererSessionId = that.otherSessionId; // may be null
-            roapMessage.seq = (that.sequenceNumber += 1);
-            // The tiebreaker needs to be neither 0 nor 429496725.
-            roapMessage.tiebreaker = Math.floor(Math.random() * 429496723 + 1);
         } else {
-            roapMessage.offererSessionId = that.incomingMessage.offererSessionId;
-            roapMessage.answererSessionId = that.sessionId;
-            roapMessage.seq = that.incomingMessage.seq;
-        }
-        that.onsignalingmessage(JSON.stringify(roapMessage));
-    };
-
-    /**
-     * Internal something-bad-happened function.
-     * @param {string} text What happened - suitable for logging.
-     */
-    that.error = function (text) {
-        throw 'Error in RoapOnJsep: ' + text;
-    };
-
-    that.sessionId = (that.roapSessionId += 1);
-    that.sequenceNumber = 0; // Number of last ROAP message sent. Starts at 1.
-    that.actionNeeded = false;
-    that.iceStarted = false;
-    that.moreIceComing = true;
-    that.iceCandidateCount = 0;
-    that.onsignalingmessage = spec.callback;
-
-    that.peerConnection.onopen = function () {
-        if (that.onopen) {
-            that.onopen();
+            console.log("End of candidates.");
         }
     };
 
@@ -4282,19 +4024,102 @@ Erizo.ChromeStableStack = function (spec) {
         }
     };
 
-    that.peerConnection.oniceconnectionstatechange = function (e) {
-        if (that.oniceconnectionstatechange) {
-            that.oniceconnectionstatechange(e.currentTarget.iceConnectionState);
-        }   
+    var localDesc;
+
+    var setLocalDesc = function (sessionDescription) {
+        sessionDescription.sdp = setMaxBW(sessionDescription.sdp);
+        sessionDescription.sdp = sessionDescription.sdp.replace(/a=ice-options:google-ice\r\n/g, "");
+        spec.callback(sessionDescription);
+        localDesc = sessionDescription;
+        //that.peerConnection.setLocalDescription(sessionDescription);
+    }
+
+    var setLocalDescp2p = function (sessionDescription) {
+        sessionDescription.sdp = setMaxBW(sessionDescription.sdp);
+        sessionDescription.sdp = sessionDescription.sdp.replace(/a=ice-options:google-ice\r\n/g, "");
+        spec.callback(sessionDescription);
+        localDesc = sessionDescription;
+        that.peerConnection.setLocalDescription(sessionDescription);
+    }
+
+    that.createOffer = function (isSubscribe) {
+      if (isSubscribe===true){
+          that.peerConnection.createOffer(setLocalDesc, errorCallback, that.mediaConstraints);
+      }else{
+          that.peerConnection.createOffer(setLocalDesc, errorCallback);
+      }
+
     };
 
-    // Variables that are part of the public interface of PeerConnection
-    // in the 28 January 2012 version of the webrtc specification.
-    that.onaddstream = null;
-    that.onremovestream = null;
-    that.state = 'new';
-    // Auto-fire next events.
-    that.markActionNeeded();
+    that.addStream = function (stream) {
+        that.peerConnection.addStream(stream);
+    };
+    spec.remoteCandidates = [];
+
+    spec.remoteDescriptionSet = false;
+
+    that.processSignalingMessage = function (msg) {
+        //console.log("Process Signaling Message", msg);
+
+        if (msg.type === 'offer') {
+            msg.sdp = setMaxBW(msg.sdp);
+            that.peerConnection.setRemoteDescription(new RTCSessionDescription(msg));
+            that.peerConnection.createAnswer(setLocalDescp2p, null, that.mediaConstraints);
+            spec.remoteDescriptionSet = true;
+        
+        } else if (msg.type === 'answer') {
+
+
+            // // For compatibility with only audio in Firefox Revisar
+            // if (answer.match(/a=ssrc:55543/)) {
+            //     answer = answer.replace(/a=sendrecv\\r\\na=mid:video/, 'a=recvonly\\r\\na=mid:video');
+            //     answer = answer.split('a=ssrc:55543')[0] + '"}';
+            // }
+
+            console.log("Set remote and local description", msg.sdp);
+
+            msg.sdp = setMaxBW(msg.sdp);
+
+            that.peerConnection.setLocalDescription(localDesc, function(){
+              that.peerConnection.setRemoteDescription(new RTCSessionDescription(msg), function() {
+                spec.remoteDescriptionSet = true;
+                console.log("Candidates to be added: ", spec.remoteCandidates.length, spec.remoteCandidates);
+                while (spec.remoteCandidates.length > 0) {
+                // IMPORTANT: preserve ordering of candidates
+                  that.peerConnection.addIceCandidate(spec.remoteCandidates.shift());
+                }
+                console.log("Local candidates to send:" , spec.localCandidates.length);
+                while(spec.localCandidates.length > 0) {
+                // IMPORTANT: preserve ordering of candidates
+                  spec.callback({type:'candidate', candidate: spec.localCandidates.shift()});
+                }
+
+              });
+            });
+
+        } else if (msg.type === 'candidate') {
+            try {
+                var obj;
+                if (typeof(msg.candidate) === 'object') {
+                    obj = msg.candidate;
+                } else {
+                    obj = JSON.parse(msg.candidate);
+                }
+                obj.candidate = obj.candidate.replace(/a=/g, "");
+                obj.sdpMLineIndex = parseInt(obj.sdpMLineIndex);
+                var candidate = new RTCIceCandidate(obj);
+                if (spec.remoteDescriptionSet) {
+                    that.peerConnection.addIceCandidate(candidate);
+                } else {
+                    spec.remoteCandidates.push(candidate);
+//                    console.log("Candidates stored: ", spec.remoteCandidates.length, spec.remoteCandidates);
+                }
+            } catch(e) {
+                L.Logger.error("Error parsing candidate", msg.candidate);
+            }
+        }
+    }
+
     return that;
 };
 /*global window, console, RTCSessionDescription, RoapConnection, webkitRTCPeerConnection*/
@@ -4688,7 +4513,8 @@ Erizo.FirefoxStack = function (spec) {
 
     var that = {},
         WebkitRTCPeerConnection = mozRTCPeerConnection,
-        RTCSessionDescription = mozRTCSessionDescription;
+        RTCSessionDescription = mozRTCSessionDescription,
+        RTCIceCandidate = mozRTCIceCandidate;
 
     var hasStream = false;
 
@@ -4700,6 +4526,10 @@ Erizo.FirefoxStack = function (spec) {
         that.pc_config.iceServers.push({"url": spec.stunServerUrl});
     } 
 
+    if ((spec.turnServer || {}).url) {
+        that.pc_config.iceServers.push({"username": spec.turnServer.username, "credential": spec.turnServer.password, "url": spec.turnServer.url});
+    }
+
     if (spec.audio === undefined) {
         spec.audio = true;
     }
@@ -4709,325 +4539,33 @@ Erizo.FirefoxStack = function (spec) {
     }
 
     that.mediaConstraints = {
-        optional: [],
-        mandatory: {
-            OfferToReceiveAudio: spec.audio,
-            OfferToReceiveVideo: spec.video,
-            MozDontOfferDataChannel: true
-        }
+        offerToReceiveAudio: spec.audio,
+        offerToReceiveVideo: spec.video,
+        mozDontOfferDataChannel: true
     };
 
     that.roapSessionId = 103;
 
-    that.peerConnection = new WebkitRTCPeerConnection();
+    that.peerConnection = new WebkitRTCPeerConnection(that.pc_config, that.con);
 
-    that.peerConnection.onicecandidate = function (event) {
-        L.Logger.debug("PeerConnection: ", spec.session_id);
-        if (!event.candidate) {
-            // At the moment, we do not renegotiate when new candidates
-            // show up after the more flag has been false once.
-            L.Logger.debug("State: " + that.peerConnection.iceGatheringState);
+    spec.localCandidates = [];
 
-            if (that.ices === undefined) {
-                that.ices = 0;
+    that.peerConnection.onicecandidate =  function (event) {
+        if (event.candidate) {
+
+            if (!event.candidate.candidate.match(/a=/)) {
+                event.candidate.candidate ="a="+event.candidate.candidate;
+            };
+
+            if (spec.remoteDescriptionSet) {
+                spec.callback({type:'candidate', candidate: event.candidate});
+            } else {
+                spec.localCandidates.push(event.candidate);
+                console.log("Local Candidates stored: ", spec.localCandidates.length, spec.localCandidates);
             }
-            that.ices = that.ices + 1;
-            L.Logger.debug(that.ices);
-            if (that.ices >= 1 && that.moreIceComing) {
-                that.moreIceComing = false;
-                that.markActionNeeded();
-            }
+
         } else {
-            that.iceCandidateCount += 1;
-        }
-    };
-
-    L.Logger.debug("Created webkitRTCPeerConnnection with config \"" + JSON.stringify(that.pc_config) + "\".");
-
-    /**
-     * This function processes signalling messages from the other side.
-     * @param {string} msgstring JSON-formatted string containing a ROAP message.
-     */
-    that.processSignalingMessage = function (msgstring) {
-        // Offer: Check for glare and resolve.
-        // Answer/OK: Remove retransmit for the msg this is an answer to.
-        // Send back "OK" if this was an Answer.
-        L.Logger.debug('Activity on conn ' + that.sessionId);
-        var msg = JSON.parse(msgstring), sd, regExp, exp;
-        that.incomingMessage = msg;
-
-        if (that.state === 'new') {
-            if (msg.messageType === 'OFFER') {
-                // Initial offer.
-                sd = {
-                    sdp: msg.sdp,
-                    type: 'offer'
-                };
-                that.peerConnection.setRemoteDescription(new RTCSessionDescription(sd));
-
-                that.state = 'offer-received';
-                // Allow other stuff to happen, then reply.
-                that.markActionNeeded();
-            } else {
-                that.error('Illegal message for this state: ' + msg.messageType + ' in state ' + that.state);
-            }
-
-        } else if (that.state === 'offer-sent') {
-            if (msg.messageType === 'ANSWER') {
-
-                //regExp = new RegExp(/m=video[\w\W]*\r\n/g);
-
-                //exp = msg.sdp.match(regExp);
-                //L.Logger.debug(exp);
-
-                //msg.sdp = msg.sdp.replace(regExp, exp + "b=AS:100\r\n");
-
-                msg.sdp = msg.sdp.replace(/ generation 0/g, "");
-                msg.sdp = msg.sdp.replace(/ udp /g, " UDP ");
-
-                sd = {
-                    sdp: msg.sdp,
-                    type: 'answer'
-                };
-                L.Logger.debug("Received ANSWER: ", sd.sdp);
-                that.peerConnection.setRemoteDescription(new RTCSessionDescription(sd));
-                that.sendOK();
-                that.state = 'established';
-
-            } else if (msg.messageType === 'pr-answer') {
-                sd = {
-                    sdp: msg.sdp,
-                    type: 'pr-answer'
-                };
-                that.peerConnection.setRemoteDescription(new RTCSessionDescription(sd));
-
-                // No change to state, and no response.
-            } else if (msg.messageType === 'offer') {
-                // Glare processing.
-                that.error('Not written yet');
-            } else {
-                that.error('Illegal message for this state: ' + msg.messageType + ' in state ' + that.state);
-            }
-
-        } else if (that.state === 'established') {
-            if (msg.messageType === 'OFFER') {
-                // Subsequent offer.
-                sd = {
-                    sdp: msg.sdp,
-                    type: 'offer'
-                };
-                that.peerConnection.setRemoteDescription(new RTCSessionDescription(sd));
-
-                that.state = 'offer-received';
-                // Allow other stuff to happen, then reply.
-                that.markActionNeeded();
-            } else {
-                that.error('Illegal message for this state: ' + msg.messageType + ' in state ' + that.state);
-            }
-        }
-    };
-
-    /**
-     * Adds a stream - this causes signalling to happen, if needed.
-     * @param {MediaStream} stream The outgoing MediaStream to add.
-     */
-    that.addStream = function (stream) {
-        hasStream = true;
-        that.peerConnection.addStream(stream);
-        that.markActionNeeded();
-    };
-
-    /**
-     * Removes a stream.
-     * @param {MediaStream} stream The MediaStream to remove.
-     */
-    that.removeStream = function (stream) {
-//        var i;
-//        for (i = 0; i < that.peerConnection.localStreams.length; ++i) {
-//            if (that.localStreams[i] === stream) {
-//                that.localStreams[i] = null;
-//            }
-//        }
-        that.markActionNeeded();
-    };
-
-    /**
-     * Closes the connection.
-     */
-    that.close = function () {
-        that.state = 'closed';
-        that.peerConnection.close();
-    };
-
-    /**
-     * Internal function: Mark that something happened.
-     */
-    that.markActionNeeded = function () {
-        that.actionNeeded = true;
-        that.doLater(function () {
-            that.onstablestate();
-        });
-    };
-
-    /**
-     * Internal function: Do something later (not on this stack).
-     * @param {function} what Callback to be executed later.
-     */
-    that.doLater = function (what) {
-        // Post an event to myself so that I get called a while later.
-        // (needs more JS/DOM info. Just call the processing function on a delay
-        // for now.)
-        window.setTimeout(what, 1);
-    };
-
-    /**
-     * Internal function called when a stable state
-     * is entered by the browser (to allow for multiple AddStream calls or
-     * other interesting actions).
-     * This function will generate an offer or answer, as needed, and send
-     * to the remote party using our onsignalingmessage function.
-     */
-    that.onstablestate = function () {
-        var mySDP, roapMessage = {};
-        var self = this;
-        if (that.actionNeeded) {
-            if (that.state === 'new' || that.state === 'established') {
-                // See if the current offer is the same as what we already sent.
-                // If not, no change is needed.   
-                L.Logger.debug("Creating offer");
-                var onSuccess = function() {
-                    that.peerConnection.createOffer(function (sessionDescription) {
-
-                        var newOffer = sessionDescription.sdp;
-
-                        L.Logger.debug("Changed", sessionDescription.sdp);
-
-                        if (newOffer !== that.prevOffer) {
-
-                            that.peerConnection.setLocalDescription(sessionDescription);
-
-                            that.state = 'preparing-offer';
-                            that.markActionNeeded();
-                            return;
-                        } else {
-                            L.Logger.debug('Not sending a new offer');
-                        }
-
-                    }, function(error) {
-                        // Callback on error
-                        L.Logger.debug("Ups! Something went wrong ", error);
-
-                    }, that.mediaConstraints);
-                }
-                if (hasStream) {
-                    that.mediaConstraints = undefined;
-
-                }
-                onSuccess();
-                
-
-
-            } else if (that.state === 'preparing-offer') {
-                // Don't do anything until we have the ICE candidates.
-                if (that.moreIceComing) {
-                    return;
-                }
-
-
-                // Now able to send the offer we've already prepared.
-                that.prevOffer = that.peerConnection.localDescription.sdp;
-                L.Logger.debug("Sending OFFER: ", that.prevOffer);
-                //L.Logger.debug('Sent SDP is ' + that.prevOffer);
-                that.sendMessage('OFFER', that.prevOffer);
-                // Not done: Retransmission on non-response.
-                that.state = 'offer-sent';
-
-            } else if (that.state === 'offer-received') {
-
-                that.peerConnection.createAnswer(function (sessionDescription) {
-                    that.peerConnection.setLocalDescription(sessionDescription);
-                    that.state = 'offer-received-preparing-answer';
-
-                    if (!that.iceStarted) {
-                        var now = new Date();
-                        L.Logger.debug(now.getTime() + ': Starting ICE in responder');
-                        that.iceStarted = true;
-                    } else {
-                        that.markActionNeeded();
-                        return;
-                    }
-
-                }, function() {
-                    // Callback on error
-                    L.Logger.debug("Ups! Something went wrong");
-
-                });
-
-            } else if (that.state === 'offer-received-preparing-answer') {
-                if (that.moreIceComing) {
-                    return;
-                }
-
-                mySDP = that.peerConnection.localDescription.sdp;
-
-                that.sendMessage('ANSWER', mySDP);
-                that.state = 'established';
-            } else {
-                that.error('Dazed and confused in state ' + that.state + ', stopping here');
-            }
-            that.actionNeeded = false;
-        }
-    };
-
-    /**
-     * Internal function to send an "OK" message.
-     */
-    that.sendOK = function () {
-        that.sendMessage('OK');
-    };
-
-    /**
-     * Internal function to send a signalling message.
-     * @param {string} operation What operation to signal.
-     * @param {string} sdp SDP message body.
-     */
-    that.sendMessage = function (operation, sdp) {
-        var roapMessage = {};
-        roapMessage.messageType = operation;
-        roapMessage.sdp = sdp; // may be null or undefined
-        if (operation === 'OFFER') {
-            roapMessage.offererSessionId = that.sessionId;
-            roapMessage.answererSessionId = that.otherSessionId; // may be null
-            roapMessage.seq = (that.sequenceNumber += 1);
-            // The tiebreaker needs to be neither 0 nor 429496725.
-            roapMessage.tiebreaker = Math.floor(Math.random() * 429496723 + 1);
-        } else {
-            roapMessage.offererSessionId = that.incomingMessage.offererSessionId;
-            roapMessage.answererSessionId = that.sessionId;
-            roapMessage.seq = that.incomingMessage.seq;
-        }
-        that.onsignalingmessage(JSON.stringify(roapMessage));
-    };
-
-    /**
-     * Internal something-bad-happened function.
-     * @param {string} text What happened - suitable for logging.
-     */
-    that.error = function (text) {
-        throw 'Error in RoapOnJsep: ' + text;
-    };
-
-    that.sessionId = (that.roapSessionId += 1);
-    that.sequenceNumber = 0; // Number of last ROAP message sent. Starts at 1.
-    that.actionNeeded = false;
-    that.iceStarted = false;
-    that.moreIceComing = true;
-    that.iceCandidateCount = 0;
-    that.onsignalingmessage = spec.callback;
-
-    that.peerConnection.onopen = function () {
-        if (that.onopen) {
-            that.onopen();
+            console.log("End of candidates.");
         }
     };
 
@@ -5043,19 +4581,337 @@ Erizo.FirefoxStack = function (spec) {
         }
     };
 
-    that.peerConnection.oniceconnectionstatechange = function (e) {
-        if (that.oniceconnectionstatechange) {
-            that.oniceconnectionstatechange(e.currentTarget.iceConnectionState);
-        }   
+
+    var setMaxBW = function (sdp) {
+        if (spec.video && spec.maxVideoBW) {
+            var a = sdp.match(/m=video.*\r\n/);
+            if (a == null){
+              a = sdp.match(/m=video.*\n/);
+            }
+            var r = a[0] + "b=AS:" + spec.maxVideoBW + "\r\n";
+            sdp = sdp.replace(a[0], r);
+        }
+
+        if (spec.audio && spec.maxAudioBW) {
+            var a = sdp.match(/m=audio.*\r\n/);
+            if (a == null){
+              a = sdp.match(/m=audio.*\n/);
+            }
+            var r = a[0] + "b=AS:" + spec.maxAudioBW + "\r\n";
+            sdp = sdp.replace(a[0], r);
+        }
+
+        return sdp;
     };
 
-    // Variables that are part of the public interface of PeerConnection
-    // in the 28 January 2012 version of the webrtc specification.
-    that.onaddstream = null;
-    that.onremovestream = null;
-    that.state = 'new';
-    // Auto-fire next events.
-    that.markActionNeeded();
+    var localDesc;
+
+    var setLocalDesc = function (sessionDescription) {
+        sessionDescription.sdp = setMaxBW(sessionDescription.sdp);
+        sessionDescription.sdp = sessionDescription.sdp.replace(/a=ice-options:google-ice\r\n/g, "");
+        spec.callback(sessionDescription);
+        localDesc = sessionDescription;
+    }
+
+    var setLocalDescp2p = function (sessionDescription) {
+        sessionDescription.sdp = setMaxBW(sessionDescription.sdp);
+        sessionDescription.sdp = sessionDescription.sdp.replace(/a=ice-options:google-ice\r\n/g, "");
+        spec.callback(sessionDescription);
+        localDesc = sessionDescription;
+        that.peerConnection.setLocalDescription(localDesc);
+    }
+
+    that.createOffer = function () {
+        that.peerConnection.createOffer(setLocalDesc, function(error){
+          L.Logger.error("Error", error);
+        
+        }, that.mediaConstraints);
+    };
+
+    that.addStream = function (stream) {
+        that.peerConnection.addStream(stream);
+    };
+    spec.remoteCandidates = [];
+    spec.remoteDescriptionSet = false;
+
+    /**
+     * Closes the connection.
+     */
+    that.close = function () {
+        that.state = 'closed';
+        that.peerConnection.close();
+    };
+
+    that.processSignalingMessage = function (msg) {
+        
+        //console.log("Process Signaling Message", msg);
+
+        if (msg.type === 'offer') {
+            msg.sdp = setMaxBW(msg.sdp);
+            that.peerConnection.setRemoteDescription(new RTCSessionDescription(msg));
+            that.peerConnection.createAnswer(setLocalDescp2p, function(error){
+                L.Logger.error("Error", error);
+            }, that.mediaConstraints);
+            spec.remoteDescriptionSet = true;
+
+        } else if (msg.type === 'answer') {
+
+            // // For compatibility with only audio in Firefox Revisar
+            // if (answer.match(/a=ssrc:55543/)) {
+            //     answer = answer.replace(/a=sendrecv\\r\\na=mid:video/, 'a=recvonly\\r\\na=mid:video');
+            //     answer = answer.split('a=ssrc:55543')[0] + '"}';
+            // }
+
+            console.log("Set remote and local description", msg.sdp);
+
+            msg.sdp = setMaxBW(msg.sdp);
+
+            that.peerConnection.setLocalDescription(localDesc, function(){
+              that.peerConnection.setRemoteDescription(new RTCSessionDescription(msg), function() {
+                spec.remoteDescriptionSet = true;
+                while (spec.remoteCandidates.length > 0) {
+                // IMPORTANT: preserve ordering of candidates
+                  that.peerConnection.addIceCandidate(spec.remoteCandidates.shift());
+                }
+
+                while(spec.localCandidates.length > 0) {
+                  L.Logger.info("Sending Candidate");
+                  // IMPORTANT: preserve ordering of candidates
+                  spec.callback({type:'candidate', candidate: spec.localCandidates.shift()});
+                }
+              });
+            });
+
+        } else if (msg.type === 'candidate') {
+          
+            try {
+                var obj;
+                if (typeof(msg.candidate) === 'object') {
+                    obj = msg.candidate;
+                } else {
+                    obj = JSON.parse(msg.candidate);
+                }
+                obj.candidate = obj.candidate.replace(/ generation 0/g, "");
+                obj.candidate = obj.candidate.replace(/ udp /g, " UDP ");
+                obj.sdpMLineIndex = parseInt(obj.sdpMLineIndex);
+                var candidate = new RTCIceCandidate(obj);
+                //console.log("Remote Candidate",candidate);
+
+                if (spec.remoteDescriptionSet) {
+                    that.peerConnection.addIceCandidate(candidate);
+                } else {
+                    spec.remoteCandidates.push(candidate);
+                }
+            } catch(e) {
+                L.Logger.error("Error parsing candidate", msg.candidate, e);
+            }
+        }
+    }
+    return that;
+};
+/*global window, console, RTCSessionDescription, RoapConnection, webkitRTCPeerConnection*/
+
+var Erizo = Erizo || {};
+
+Erizo.BowserStack = function (spec) {
+    "use strict";
+
+    var that = {},
+        WebkitRTCPeerConnection = webkitRTCPeerConnection;
+
+    that.pc_config = {
+        "iceServers": []
+    };
+
+    that.con = {'optional': [{'DtlsSrtpKeyAgreement': true}]};
+
+    if (spec.stunServerUrl !== undefined) {
+        that.pc_config.iceServers.push({"url": spec.stunServerUrl});
+    } 
+
+    if ((spec.turnServer || {}).url) {
+        that.pc_config.iceServers.push({"username": spec.turnServer.username, "credential": spec.turnServer.password, "url": spec.turnServer.url});
+    }
+
+    if (spec.audio === undefined) {
+        spec.audio = true;
+    }
+
+    if (spec.video === undefined) {
+        spec.video = true;
+    }
+
+    that.mediaConstraints = {
+            'offerToReceiveVideo': spec.video,
+            'offerToReceiveAudio': spec.audio
+    };
+
+    that.peerConnection = new WebkitRTCPeerConnection(that.pc_config, that.con);
+    
+    spec.remoteDescriptionSet = false;
+    
+    var setMaxBW = function (sdp) {
+        if (spec.maxVideoBW) {
+            var a = sdp.match(/m=video.*\r\n/);
+            if (a == null){
+              a = sdp.match(/m=video.*\n/);
+            }
+            var r = a[0] + "b=AS:" + spec.maxVideoBW + "\r\n";
+            sdp = sdp.replace(a[0], r);
+        }
+
+        if (spec.maxAudioBW) {
+            var a = sdp.match(/m=audio.*\r\n/);
+            if (a == null){
+              a = sdp.match(/m=audio.*\n/);
+            }
+            var r = a[0] + "b=AS:" + spec.maxAudioBW + "\r\n";
+            sdp = sdp.replace(a[0], r);
+        }
+
+        return sdp;
+    };
+
+    /**
+     * Closes the connection.
+     */
+    that.close = function () {
+        that.state = 'closed';
+        that.peerConnection.close();
+    };
+
+    spec.localCandidates = [];
+
+    that.peerConnection.onicecandidate =  function (event) {
+        if (event.candidate) {
+            if (!event.candidate.candidate.match(/a=/)) {
+                event.candidate.candidate ="a="+event.candidate.candidate;
+            };
+
+            
+            if (spec.remoteDescriptionSet) {
+                spec.callback({type:'candidate', candidate: event.candidate});
+            } else {
+                spec.localCandidates.push(event.candidate);
+//                console.log("Local Candidates stored: ", spec.localCandidates.length, spec.localCandidates);
+            }
+
+        } else {
+            
+          //  spec.callback(that.peerConnection.localDescription);
+            console.log("End of candidates." , that.peerConnection.localDescription);
+        }
+    };
+
+    that.peerConnection.onaddstream = function (stream) {
+        if (that.onaddstream) {
+            that.onaddstream(stream);
+        }
+    };
+
+    that.peerConnection.onremovestream = function (stream) {
+        if (that.onremovestream) {
+            that.onremovestream(stream);
+        }
+    };
+    
+    var errorCallback = function(message){
+      console.log("Error in Stack ", message);
+    }
+
+    var localDesc;
+
+    var setLocalDesc = function (sessionDescription) {
+        sessionDescription.sdp = setMaxBW(sessionDescription.sdp);
+//        sessionDescription.sdp = sessionDescription.sdp.replace(/a=ice-options:google-ice\r\n/g, "");
+        console.log("Set local description", sessionDescription.sdp);
+        localDesc = sessionDescription;
+        that.peerConnection.setLocalDescription(localDesc, function(){
+          console.log("The final LocalDesc", that.peerConnection.localDescription);
+          spec.callback(that.peerConnection.localDescription);
+        }, errorCallback);
+        //that.peerConnection.setLocalDescription(sessionDescription);
+    }
+
+    var setLocalDescp2p = function (sessionDescription) {
+        sessionDescription.sdp = setMaxBW(sessionDescription.sdp);
+//        sessionDescription.sdp = sessionDescription.sdp.replace(/a=ice-options:google-ice\r\n/g, "");
+        spec.callback(sessionDescription);
+        localDesc = sessionDescription;
+        that.peerConnection.setLocalDescription(sessionDescription);
+    }
+
+    that.createOffer = function (isSubscribe) {
+      if (isSubscribe===true)
+        that.peerConnection.createOffer(setLocalDesc, errorCallback, that.mediaConstraints);
+      else
+        that.peerConnection.createOffer(setLocalDesc, errorCallback);
+
+    };
+
+    that.addStream = function (stream) {
+        that.peerConnection.addStream(stream);
+    };
+    spec.remoteCandidates = [];
+
+
+    that.processSignalingMessage = function (msg) {
+       console.log("Process Signaling Message", msg);
+
+        if (msg.type === 'offer') {
+            msg.sdp = setMaxBW(msg.sdp);
+            that.peerConnection.setRemoteDescription(new RTCSessionDescription(msg));
+            that.peerConnection.createAnswer(setLocalDescp2p, null, that.mediaConstraints);
+            spec.remoteDescriptionSet = true;
+        
+        } else if (msg.type === 'answer') {
+
+            console.log("Set remote description", msg.sdp);
+
+            msg.sdp = setMaxBW(msg.sdp);
+
+            that.peerConnection.setRemoteDescription(new RTCSessionDescription(msg), function() {
+              spec.remoteDescriptionSet = true;
+              console.log("Candidates to be added: ", spec.remoteCandidates.length);
+              while (spec.remoteCandidates.length > 0) {
+                console.log("Candidate :",spec.remoteCandidates[spec.remoteCandidates.length-1]);
+                that.peerConnection.addIceCandidate(spec.remoteCandidates.shift(), function(){}, errorCallback);
+               
+              }
+//              console.log("Local candidates to send:" , spec.localCandidates.length);
+              while(spec.localCandidates.length > 0) {
+                spec.callback({type:'candidate', candidate: spec.localCandidates.shift()});
+              }
+
+            }, function(){console.log("Error Setting Remote Description");});
+
+        } else if (msg.type === 'candidate') {
+          console.log("Message with candidate");
+            try {              
+                var obj;
+                if (typeof(msg.candidate) === 'object') {
+                    obj = msg.candidate;
+                } else {
+                    obj = JSON.parse(msg.candidate);
+                }
+//                obj.candidate = obj.candidate.replace(/ generation 0/g, "");
+//                obj.candidate = obj.candidate.replace(/ udp /g, " UDP ");
+                obj.candidate = obj.candidate.replace(/a=/g, "");
+                obj.sdpMLineIndex = parseInt(obj.sdpMLineIndex);
+                obj.sdpMLineIndex = obj.sdpMid=="audio"?0:1;
+                var candidate = new RTCIceCandidate(obj);
+                console.log("Remote Candidate",candidate);
+                if (spec.remoteDescriptionSet) {
+                    that.peerConnection.addIceCandidate(candidate, function(){}, errorCallback);
+                } else {
+                    spec.remoteCandidates.push(candidate);
+                }
+            } catch(e) {
+                L.Logger.error("Error parsing candidate", msg.candidate);
+            }
+        }
+    }
+
     return that;
 };
 /*global window, console, navigator*/
@@ -5071,31 +4927,50 @@ Erizo.Connection = function (spec) {
     spec.session_id = (Erizo.sessionId += 1);
 
     // Check which WebRTC Stack is installed.
-    that.browser = "";
+    that.browser = Erizo.getBrowser();
 
     if (typeof module !== 'undefined' && module.exports) {
         L.Logger.error('Publish/subscribe video/audio streams not supported in erizofc yet');
         that = Erizo.FcStack(spec);
-    } else if (window.navigator.userAgent.match("Firefox") !== null) {
-        // Firefox
-        that.browser = "mozilla";
+    } else if (that.browser === 'mozilla') {
+        L.Logger.debug("Firefox Stack");
         that = Erizo.FirefoxStack(spec);
-    } else if (window.navigator.appVersion.match(/Chrome\/([\w\W]*?)\./)[1] >= 26) {
-        // Google Chrome Stable.
-        L.Logger.debug("Stable");
+    } else if (that.browser === 'bowser'){
+        L.Logger.debug("Bowser Stack");
+        that = Erizo.BowserStack(spec); 
+    } else if (that.browser === 'chrome-stable') {
+        L.Logger.debug("Stable!");
         that = Erizo.ChromeStableStack(spec);
-        that.browser = "chrome-stable";
-    }  else if (window.navigator.appVersion.match(/Bowser\/([\w\W]*?)\./)[1] === "25") {
-        // Bowser
-        that.browser = "bowser";
     } else {
-        // None.
-        that.browser = "none";
+        L.Logger.debug("None!");
         throw "WebRTC stack not available";
     }
 
     return that;
 };
+
+Erizo.getBrowser = function () {
+  "use strict";
+
+    var browser = "none";
+
+    if (window.navigator.userAgent.match("Firefox") !== null) {
+        // Firefox
+        browser = "mozilla";
+    } else if (window.navigator.userAgent.match("Bowser") !==null){
+        browser = "bowser";    
+    } else if (window.navigator.userAgent.match("Chrome") !==null) {
+        if (window.navigator.appVersion.match(/Chrome\/([\w\W]*?)\./)[1] >= 26) {
+            browser = "chrome-stable";
+        }
+    } else if (window.navigator.userAgent.match("Safari") !== null) {
+        browser = "bowser";
+    } else if (window.navigator.userAgent.match("AppleWebKit") !== null) {
+        browser = "bowser";
+    }
+    return browser;
+};
+
 
 Erizo.GetUserMedia = function (config, callback, error) {
     "use strict";
@@ -5434,7 +5309,7 @@ Erizo.Room = function (spec) {
             stream.hide();
 
             // Close PC stream
-            stream.pc.close();
+            if (stream.pc) stream.pc.close();
             if (stream.local) {
                 stream.stream.stop();
             }
@@ -5474,59 +5349,73 @@ Erizo.Room = function (spec) {
             that.dispatchEvent(evt);
         });
 
+        that.socket.on('signaling_message_erizo', function (arg) {
+            var stream;
+            if (arg.peerId) {
+                stream = that.remoteStreams[arg.peerId];
+            } else {
+                stream = that.localStreams[arg.streamId];
+            }
+             
+            if (stream) {
+                stream.pc.processSignalingMessage(arg.mess);
+            }
+        });
 
-        that.socket.on('onSubscribeP2P', function (arg) {
+        that.socket.on('signaling_message_peer', function (arg) {
+
+            var stream = that.localStreams[arg.streamId];
+
+            if (stream) {
+                stream.pc[arg.peerSocket].processSignalingMessage(arg.msg);
+            } else {
+                stream = that.remoteStreams[arg.streamId];
+
+                if (!stream.pc) {
+                    create_remote_pc(stream, arg.peerSocket);
+                }   
+                stream.pc.processSignalingMessage(arg.msg);
+            }
+        });
+
+        that.socket.on('publish_me', function (arg) {
             var myStream = that.localStreams[arg.streamId];
 
             if (myStream.pc === undefined) {
                 myStream.pc = {};
             }
 
-            myStream.pc[arg.subsSocket] = Erizo.Connection({callback: function (offer) {
-                sendSDPSocket('publish', {state: 'p2pSignaling', streamId: arg.streamId, subsSocket: arg.subsSocket}, offer, function (answer, id) {
-                    if (answer === 'error') {
-                        if (callbackError) callbackError(answer);
-                    }
-                    myStream.pc[arg.subsSocket].onsignalingmessage = function (ok) {
-                        myStream.pc[arg.subsSocket].onsignalingmessage = function () {};
-                    };
-
-                    myStream.pc[arg.subsSocket].processSignalingMessage(answer);
-                });
+            myStream.pc[arg.peerSocket] = Erizo.Connection({callback: function (msg) {
+                sendSDPSocket('signaling_message', {streamId: arg.streamId, peerSocket: arg.peerSocket, msg: msg});
             }, audio: myStream.hasAudio(), video: myStream.hasVideo(), stunServerUrl: that.stunServerUrl, turnServer: that.turnServer});
 
-            myStream.pc[arg.subsSocket].addStream(myStream.stream);
 
-            myStream.pc[arg.subsSocket].oniceconnectionstatechange = function (state) {
+            myStream.pc[arg.peerSocket].oniceconnectionstatechange = function (state) {
                 if (state === 'disconnected') {
-                    myStream.pc[arg.subsSocket].close();
-                    delete myStream.pc[arg.subsSocket];
+                    myStream.pc[arg.peerSocket].close();
+                    delete myStream.pc[arg.peerSocket];
                 }
             };
 
+            myStream.pc[arg.peerSocket].addStream(myStream.stream);
+            myStream.pc[arg.peerSocket].createOffer();
         });
 
-        that.socket.on('onPublishP2P', function (arg, callback) {
-            var myStream = that.remoteStreams[arg.streamId];
+        var create_remote_pc = function (stream, peerSocket) {
 
-            myStream.pc = Erizo.Connection({callback: function (offer) {}, stunServerUrl: that.stunServerUrl, turnServer: that.turnServer, maxAudioBW: spec.maxAudioBW, maxVideoBW: spec.maxVideoBW});
+            stream.pc = Erizo.Connection({callback: function (msg) {
+                sendSDPSocket('signaling_message', {streamId: stream.getID(), peerSocket: peerSocket, msg: msg});
+            }, stunServerUrl: that.stunServerUrl, turnServer: that.turnServer, maxAudioBW: spec.maxAudioBW, maxVideoBW: spec.maxVideoBW});
 
-            myStream.pc.onsignalingmessage = function (answer) {
-                myStream.pc.onsignalingmessage = function () {};
-                callback(answer);
-            };
-
-            myStream.pc.processSignalingMessage(arg.sdp);
-
-            myStream.pc.onaddstream = function (evt) {
+            stream.pc.onaddstream = function (evt) {
                 // Draw on html
                 L.Logger.info('Stream subscribed');
-                myStream.stream = evt.stream;
-                var evt2 = Erizo.StreamEvent({type: 'stream-subscribed', stream: myStream});
+                stream.stream = evt.stream;
+                var evt2 = Erizo.StreamEvent({type: 'stream-subscribed', stream: stream});
                 that.dispatchEvent(evt2);
             };
 
-        });
+        }
 
         // We receive an event of new data in one of the streams
         that.socket.on('onDataStream', function (arg) {
@@ -5562,6 +5451,14 @@ Erizo.Room = function (spec) {
             }
         });
 
+        that.socket.on('connection_failed', function(arg){
+            L.Logger.info("ICE Connection Failed");
+            if (that.state !== DISCONNECTED) {
+                  var disconnectEvt = Erizo.RoomEvent({type: "stream-failed"});
+                  that.dispatchEvent(disconnectEvt);
+            }
+        });
+
         // First message with the token
         sendMessageSocket('token', token, callback, error);
     };
@@ -5573,11 +5470,16 @@ Erizo.Room = function (spec) {
                 if (callback !== undefined) {
                     callback(msg);
                 }
-            } else {
+            } else if (respType === "error"){
                 if (error !== undefined) {
                     error(msg);
                 }
+            } else {
+                if (callback !== undefined) {
+                    callback(respType, msg);
+                }
             }
+
         });
     };
 
@@ -5605,7 +5507,7 @@ Erizo.Room = function (spec) {
         that.state = CONNECTING;
         connectSocket(JSON.parse(token), function (response) {
             var index = 0, stream, streamList = [], streams, roomId, arg, connectEvt;
-            streams = response.streams;
+            streams = response.streams || [];
             that.p2p = response.p2p;
             roomId = response.id;
             that.stunServerUrl = response.stunServerUrl;
@@ -5645,7 +5547,7 @@ Erizo.Room = function (spec) {
 
     // It publishes the stream provided as argument. Once it is added it throws a
     // StreamEvent("stream-added").
-    that.publish = function (stream, options, callback, callbackError) {
+    that.publish = function (stream, options, callback) {
         options = options || {};
 
         var maxVideoBW;
@@ -5669,9 +5571,9 @@ Erizo.Room = function (spec) {
                         type = 'recording';
                         arg = stream.recording;
                     }
-                    sendSDPSocket('publish', {state: type, data: stream.hasData(), audio: stream.hasAudio(), video: stream.hasVideo(), attributes: stream.getAttributes()}, arg, function (answer, id) {
+                    sendSDPSocket('publish', {state: type, data: stream.hasData(), audio: stream.hasAudio(), video: stream.hasVideo(), attributes: stream.getAttributes()}, arg, function (id, error) {
 
-                        if (answer === 'success') {
+                        if (id !== null) {
                             L.Logger.info('Stream published');
                             stream.getID = function () {
                                 return id;
@@ -5685,13 +5587,13 @@ Erizo.Room = function (spec) {
                             that.localStreams[id] = stream;
                             stream.room = that;
                             if (callback)
-                                callback();
+                                callback(id);
                         } else {
-                            L.Logger.info('Error when publishing the stream', answer);
+                            L.Logger.error('Error when publishing the stream', error);
                             // Unauth -1052488119
                             // Network -5
-                            if (callbackError)
-                                callbackError(answer);
+                            if (callback)
+                                callback(undefined, error);
                         }
                     });
 
@@ -5699,10 +5601,11 @@ Erizo.Room = function (spec) {
                     // We save them now to be used when actually publishing in P2P mode.
                     spec.maxAudioBW = options.maxAudioBW;
                     spec.maxVideoBW = options.maxVideoBW;
-                    sendSDPSocket('publish', {state: 'p2p', data: stream.hasData(), audio: stream.hasAudio(), video: stream.hasVideo(), screen: stream.hasScreen(), attributes: stream.getAttributes()}, undefined, function (answer, id) {
-                        if (answer === 'error') {
-                            if (callbackError)
-                                callbackError(answer);
+                    sendSDPSocket('publish', {state: 'p2p', data: stream.hasData(), audio: stream.hasAudio(), video: stream.hasVideo(), screen: stream.hasScreen(), attributes: stream.getAttributes()}, undefined, function (id, error) {
+                        if (id === null) {
+                            L.Logger.error('Error when publishing the stream', error);
+                            if (callback)
+                                callback(undefined, error);
                         }
                         L.Logger.info('Stream published');
                         stream.getID = function () {
@@ -5723,43 +5626,45 @@ Erizo.Room = function (spec) {
 
                 } else {
 
-                    stream.pc = Erizo.Connection({callback: function (offer) {
-                        sendSDPSocket('publish', {state: 'offer', data: stream.hasData(), audio: stream.hasAudio(), video: stream.hasVideo(), attributes: stream.getAttributes()}, offer, function (answer, id) {
-                            if (answer === 'error') {
-                                if (callbackError)
-                                    callbackError(answer);
-                                return;
-                            }
-                            stream.pc.onsignalingmessage = function (ok) {
-                                stream.pc.onsignalingmessage = function () {};
-                                sendSDPSocket('publish', {state: 'ok', streamId: id, data: stream.hasData(), audio: stream.hasAudio(), video: stream.hasVideo(), screen: stream.hasScreen(), attributes: stream.getAttributes()}, ok);
-                                L.Logger.info('Stream published');
-                                stream.getID = function () {
-                                    return id;
-                                };
-                                if (stream.hasData()) {
-                                    stream.sendData = function (msg) {
-                                        sendDataSocket(stream, msg);
-                                    };
-                                }
-                                stream.setAttributes = function (attrs) {
-                                    updateAttributes(stream, attrs);
-                                };
-                                that.localStreams[id] = stream;
-                                stream.room = that;
-                            };
-                            stream.pc.processSignalingMessage(answer);
-                        });
-                    }, stunServerUrl: that.stunServerUrl, turnServer: that.turnServer, maxAudioBW: options.maxAudioBW, maxVideoBW: options.maxVideoBW});
+                    sendSDPSocket('publish', {state: 'erizo', data: stream.hasData(), audio: stream.hasAudio(), video: stream.hasVideo(), screen: stream.hasScreen(), attributes: stream.getAttributes()}, undefined, function (id, error) {
 
-                    stream.pc.addStream(stream.stream);
+                        if (id === null) {
+                            L.Logger.error('Error when publishing the stream: ', error);
+                            if (callback)
+                                callback(undefined, error);
+                            return;
+                        }
+
+                        L.Logger.info('Stream published');
+                        stream.getID = function () {
+                            return id;
+                        };
+                        if (stream.hasData()) {
+                            stream.sendData = function (msg) {
+                                sendDataSocket(stream, msg);
+                            };
+                        }
+                        that.localStreams[id] = stream;
+                        stream.room = that;
+
+                        stream.pc = Erizo.Connection({callback: function (message) {
+                            console.log("Sending message", message);
+                            sendSDPSocket('signaling_message', {streamId: stream.getID(), msg: message}, undefined, function () {});
+                        }, stunServerUrl: that.stunServerUrl, turnServer: that.turnServer, maxAudioBW: options.maxAudioBW, maxVideoBW: options.maxVideoBW, audio:stream.hasAudio(), video: stream.hasVideo()});
+                        
+                        stream.pc.addStream(stream.stream);
+                        stream.pc.createOffer();
+                        if(callback) callback(id);
+                        
+                    });
                 }
             } else if (stream.hasData()) {
                 // 3- Publish Data Stream
-                sendSDPSocket('publish', {state: 'data', data: stream.hasData(), audio: false, video: false, screen: false, attributes: stream.getAttributes()}, undefined, function (answer, id) {
-                    if (answer === 'error') {
-                        if (callbackError)
-                            callbackError(answer);
+                sendSDPSocket('publish', {state: 'data', data: stream.hasData(), audio: false, video: false, screen: false, attributes: stream.getAttributes()}, undefined, function (id, error) {
+                    if (id === null) {
+                        L.Logger.error('Error publishing stream ', error);
+                        if (callback)
+                            callback(undefined, error);
                         return;
                     }
                     L.Logger.info('Stream published');
@@ -5774,29 +5679,61 @@ Erizo.Room = function (spec) {
                     };
                     that.localStreams[id] = stream;
                     stream.room = that;
+                    if(callback) callback(id);
                 });
             }
         }
     };
 
-    that.startRecording = function (stream, callback, callbackError) {
+    // Returns callback(id, error)
+    that.startRecording = function (stream, callback) {
         L.Logger.debug("Start Recording streamaa: " + stream.getID());
-        sendMessageSocket('startRecorder', {to: stream.getID()}, callback, callbackError);
+        sendMessageSocket('startRecorder', {to: stream.getID()}, function(id, error){
+            if (id === null){
+                L.Logger.error('Error on start recording', error);
+                if (callback) callback(undefined, error);
+                return;
+            }
+
+            L.Logger.info('Start recording', id);
+            if (callback) callback(id);
+        });
     }
 
-    that.stopRecording = function (recordingId, callback, callbackError) {
-        sendMessageSocket('stopRecorder', {id: recordingId}, callback, callbackError);
+    // Returns callback(id, error)
+    that.stopRecording = function (recordingId, callback) {
+        sendMessageSocket('stopRecorder', {id: recordingId}, function(result, error){
+            if (result === null){
+                L.Logger.error('Error on stop recording', error);
+                if (callback) callback(undefined, error);
+                return;
+            }
+            L.Logger.info('Stop recording');
+            if (callback) callback(true);
+        });
     }
 
     // It unpublishes the local stream in the room, dispatching a StreamEvent("stream-removed")
-    that.unpublish = function (stream) {
+    that.unpublish = function (stream, callback) {
 
         // Unpublish stream from Erizo-Controller
         if (stream.local) {
             // Media stream
-            sendMessageSocket('unpublish', stream.getID());
+            sendMessageSocket('unpublish', stream.getID(), function(result, error){
+                if (result === null){
+                    L.Logger.error('Error unpublishing stream', error);
+                    if (callback) callback(undefined, error);
+                    return;
+                }
+
+                L.Logger.info('Stream unpublished');
+                if (callback) callback(true);
+
+
+            });
+            var p2p = stream.room.p2p;
             stream.room = undefined;
-            if ((stream.hasAudio() || stream.hasVideo() || stream.hasScreen()) && stream.url === undefined) {
+            if ((stream.hasAudio() || stream.hasVideo() || stream.hasScreen()) && stream.url === undefined && !p2p) {
                 stream.pc.close();
                 stream.pc = undefined;
             }
@@ -5810,7 +5747,7 @@ Erizo.Room = function (spec) {
     };
 
     // It subscribe to a remote stream and draws it inside the HTML tag given by the ID='elementID'
-    that.subscribe = function (stream, options, callbackError) {
+    that.subscribe = function (stream, options, callback) {
 
         options = options || {};
 
@@ -5821,42 +5758,48 @@ Erizo.Room = function (spec) {
 
                 if (that.p2p) {
                     sendSDPSocket('subscribe', {streamId: stream.getID()});
+                    if(callback) callback(true);
                 } else {
-                    stream.pc = Erizo.Connection({callback: function (offer) {
-                        sendSDPSocket('subscribe', {streamId: stream.getID(), audio: options.audio, video: options.video, data: options.data}, offer, function (answer) {
-                            if (answer === 'error') {
-                                if (callbackError)
-                                    callbackError(answer);
-                                return;
-                            }
-                            // For compatibility with only audio in Firefox
-                            if (answer.match(/a=ssrc:55543/)) {
-                                answer = answer.replace(/a=sendrecv\\r\\na=mid:video/, 'a=recvonly\\r\\na=mid:video');
-                                answer = answer.split('a=ssrc:55543')[0] + '"}';
-                            }
-                            
-                            stream.pc.processSignalingMessage(answer);
-                        });
-                    }, nop2p: true, audio: stream.hasAudio(), video: stream.hasVideo(), stunServerUrl: that.stunServerUrl, turnServer: that.turnServer});
 
-                    stream.pc.onaddstream = function (evt) {
-                        // Draw on html
-                        L.Logger.info('Stream subscribed');
-                        stream.stream = evt.stream;
-                        var evt2 = Erizo.StreamEvent({type: 'stream-subscribed', stream: stream});
-                        that.dispatchEvent(evt2);
-                    };
+                    sendSDPSocket('subscribe', {streamId: stream.getID(), audio: options.audio, video: options.video, data: options.data, browser: Erizo.getBrowser()}, undefined, function (result, error) {
+                        if (result === null) {
+                            L.Logger.error('Error subscribing to stream ', error);
+                            if (callback)
+                                callback(undefined, error);
+                            return;
+                        }
+
+                        L.Logger.info('Subscriber added');
+                          
+                        stream.pc = Erizo.Connection({callback: function (message) {
+                            L.Logger.info("Sending message", message);
+                            sendSDPSocket('signaling_message', {streamId: stream.getID(), msg: message, browser: stream.pc.browser}, undefined, function () {});
+                        }, nop2p: true, audio: stream.hasAudio(), video: stream.hasVideo(), stunServerUrl: that.stunServerUrl, turnServer: that.turnServer});
+
+                        stream.pc.onaddstream = function (evt) {
+                            // Draw on html
+                            L.Logger.info('Stream subscribed');
+                            stream.stream = evt.stream;
+                            var evt2 = Erizo.StreamEvent({type: 'stream-subscribed', stream: stream});
+                            that.dispatchEvent(evt2);
+                        };
+                        stream.pc.createOffer(true);
+                        if(callback) callback(true);
+                    });
+
                 }
             } else if (stream.hasData() && options.data !== false) {
-                sendSDPSocket('subscribe', {streamId: stream.getID(), data: options.data}, undefined, function (answer) {
-                    if (answer === 'error') {
-                        if (callbackError)
-                            callbackError(answer);
+                sendSDPSocket('subscribe', {streamId: stream.getID(), data: options.data}, undefined, function (result, error) {
+                    if (result === null) {
+                        L.Logger.error('Error subscribing to stream ', error);
+                        if (callback)
+                            callback(undefined, error);
                         return;
                     }
                     L.Logger.info('Stream subscribed');
                     var evt = Erizo.StreamEvent({type: 'stream-subscribed', stream: stream});
                     that.dispatchEvent(evt);
+                    if(callback) callback(true);
                 });
             } else {
                 L.Logger.info("Subscribing to anything");
@@ -5869,18 +5812,19 @@ Erizo.Room = function (spec) {
     };
 
     // It unsubscribes from the stream, removing the HTML element.
-    that.unsubscribe = function (stream, callbackError) {
+    that.unsubscribe = function (stream, callback) {
 
         // Unsubscribe from stream stream
         if (that.socket !== undefined) {
             if (!stream.local) {
-                sendMessageSocket('unsubscribe', stream.getID(), function () {
-                    if (answer === 'error') {
-                        if (callbackError)
-                            callbackError(answer);
+                sendMessageSocket('unsubscribe', stream.getID(), function (result, error) {
+                    if (result === null) {
+                        if (callback)
+                            callback(undefined, error);
                         return;
                     }
                     removeStream(stream);
+                    if (callback) callback(true);
                 }, function () {
                     L.Logger.error("Error calling unsubscribe.");
                 });
@@ -6917,8 +6861,7 @@ Erizo.Speaker = function (spec) {
         show,
         mute,
         unmute,
-        lastVolume = 50,
-        muted = false;
+        lastVolume = 50;
 
     // Variables
 
@@ -6956,16 +6899,17 @@ Erizo.Speaker = function (spec) {
         that.picker.max = 100;
         that.picker.step = 10;
         that.picker.value = lastVolume;
-        that.picker.orient = "vertical"; //  FireFox supports range sliders as of version 23
+        that.picker.setAttribute("orient", "vertical"); //  FireFox supports range sliders as of version 23
         that.div.appendChild(that.picker);
         that.media.volume = that.picker.value / 100;
+        that.media.muted = false;
 
         that.picker.oninput = function (evt) {
             if (that.picker.value > 0) {
-                muted = false;
+                that.media.muted = false;
                 that.icon.setAttribute('src', that.url + '/assets/sound48.png');
             } else {
-                muted = true;
+                that.media.muted = true;
                 that.icon.setAttribute('src', that.url + '/assets/mute48.png');
             }
             that.media.volume = that.picker.value / 100;
@@ -6973,26 +6917,26 @@ Erizo.Speaker = function (spec) {
 
         // Private functions
         show = function (displaying) {
-            that.picker.setAttribute('style', 'width: 32px; height: 100px; position: absolute; bottom: 90%; z-index: 1;' + that.div.offsetHeight + 'px; right: 0px; -webkit-appearance: slider-vertical; display: ' + displaying);
+            that.picker.setAttribute('style', 'background: transparent; width: 32px; height: 100px; position: absolute; bottom: 90%; z-index: 1;' + that.div.offsetHeight + 'px; right: 0px; -webkit-appearance: slider-vertical; display: ' + displaying);
         };
 
         mute = function () {
-            muted = true;
             that.icon.setAttribute('src', that.url + '/assets/mute48.png');
             lastVolume = that.picker.value;
             that.picker.value = 0;
             that.media.volume = 0;
+            that.media.muted = true;
         };
 
         unmute = function () {
-            muted = false;
             that.icon.setAttribute('src', that.url + '/assets/sound48.png');
             that.picker.value = lastVolume;
             that.media.volume = that.picker.value / 100;
+            that.media.muted = false;
         };
 
         that.icon.onclick = function (evt) {
-            if (muted) {
+            if (that.media.muted) {
                 unmute();
             } else {
                 mute();
@@ -7013,19 +6957,19 @@ Erizo.Speaker = function (spec) {
     } else {
 
         mute = function () {
-            muted = true;
+            that.media.muted = true;
             that.icon.setAttribute('src', that.url + '/assets/mute48.png');
             that.stream.stream.getAudioTracks()[0].enabled = false;
         };
 
         unmute = function () {
-            muted = false;
+            that.media.muted = false;
             that.icon.setAttribute('src', that.url + '/assets/sound48.png');
             that.stream.stream.getAudioTracks()[0].enabled = true;
         };
 
         that.icon.onclick = function (evt) {
-            if (muted) {
+            if (that.media.muted) {
                 unmute();
             } else {
                 mute();

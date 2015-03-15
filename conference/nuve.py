@@ -106,7 +106,7 @@ class Nuve:
             raise Exception('unauthorized')
         response = res.read()
         try:
-            data = json.loads(response)
+            data = json.loads(str(response, 'utf8'))
         except Exception:
             data = response
         conn.close()

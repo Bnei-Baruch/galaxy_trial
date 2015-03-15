@@ -11,14 +11,11 @@ from conference import nuve
 nuve_client = nuve.Nuve(**settings.NUVE_CONFIG)
 
 # Getting a room
-import json
-json_rooms = str(nuve_client.getRooms(), 'utf8')
-rooms = [room for room in json.loads(json_rooms)
+rooms = [room for room in nuve_client.getRooms()
          if room['name'] == settings.NUVE_ROOM_NAME]
 
 if not rooms:
-    json_room = nuve_client.createRoom(settings.NUVE_ROOM_NAME, "")
-    room = json.loads(str(json_room, 'utf8'))
+    room = nuve_client.createRoom(settings.NUVE_ROOM_NAME, "")
 else:
     room = rooms[0]
 

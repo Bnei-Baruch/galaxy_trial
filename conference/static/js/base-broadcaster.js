@@ -39,9 +39,11 @@ window.BaseBroadcaster = (function ($, config) {
                 that._callCustomHandler('onRoomConnected', roomEvent);
 
                 that.room.publish(that.streamToBroadcast,
-                        {maxVideoBW: that.settings.maxVideoBW});
+                        {maxVideoBW: that.settings.maxVideoBW},
+                        function () {
+                            that.reloadOnDisconnect(that.streamToBroadcast);
+                        });
                 that._processNewStreams(roomEvent.streams);
-                that.reloadOnDisconnect(that.streamToBroadcast);
                 that.hideStatusMessage();
             },
             'room-disconnected': function (roomEvent) {
@@ -165,7 +167,9 @@ window.BaseBroadcaster = (function ($, config) {
             if (e.target.iceConnectionState == 'disconnected') {
                 that.waitAndReload();
             }
-            originalHandler(e);
+            if (originalHandler !== null) {
+                originalHandler(e);
+            }
         };
     };
 

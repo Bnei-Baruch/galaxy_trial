@@ -28,11 +28,12 @@
             }
         };
 
+        // videoOpt doesnt work with Licode 1.1 for some reason, so replaced with videoSize
         var stream = Erizo.Stream({
             audio: true,
-            video: videoOpt,
+            video: true,
             attributes: {role: 'broadcaster'},
-            videoSize: config.broadcaster.videoSize
+            videoSize: [width, height, width, height]
         }); 
         return stream;
     };
