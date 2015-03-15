@@ -3,8 +3,8 @@ import random
 import http.client
 import json
 
-
 class Nuve:
+
     service = None
     key = None
     url = None
@@ -15,7 +15,7 @@ class Nuve:
         self.url = url
         self.port = port
 
-    def createRoom(self, name, options=None, params=None):
+    def createRoom(self, name, options, params=None):
         response = self.send('POST', json.dumps({"name": name, "options": options}), "/rooms/", params)
         return response
 
@@ -63,8 +63,9 @@ class Nuve:
         response = self.send('DELETE',  None, '/rooms/' + room + '/users/' + user, params)
         return response
 
+
     def send(self, method, body, url, params=None, username="", role=""):
-        if params is None:
+        if (params == None):
             service = self.service
             key = self.key
         else:
@@ -79,22 +80,22 @@ class Nuve:
 
         if (username != '' and role != ''):
             header += ',mauth_username='
-            header += username
+            header +=  username
             header += ',mauth_role='
-            header += role
+            header +=  role
 
             toSign += ',' + username + ',' + role
 
         signed = self.calculateSignature(toSign, key)
 
         header += ',mauth_serviceid='
-        header += service
+        header +=  service
         header += ',mauth_cnonce='
         header += str(cnounce)
         header += ',mauth_timestamp='
-        header += str(timestamp)
+        header +=  str(timestamp)
         header += ',mauth_signature='
-        header += signed
+        header +=  str(signed, 'utf8')
 
         conn = http.client.HTTPConnection(self.url, self.port)
         headers = {"Authorization": header, 'Content-Type': 'application/json'}
@@ -103,7 +104,7 @@ class Nuve:
         if res.status == 401:
             print(res.status, res.reason)
             raise Exception('unauthorized')
-        response = str(res.read(), 'utf8')
+        response = res.read()
         try:
             data = json.loads(response)
         except Exception:
@@ -115,8 +116,6 @@ class Nuve:
         from hashlib import sha1
         import hmac
         import binascii
-        hasher = hmac.new(key.encode('utf8'),
-                          toSign.encode('utf8'), sha1)
-        hexdigest = hasher.hexdigest().encode('utf8')
-        signed = binascii.b2a_base64(hexdigest)[:-1]
-        return str(signed, 'utf8')
+        hasher = hmac.new(key.encode('utf8'), toSign.encode('utf8'), sha1)
+        signed = binascii.b2a_base64(hasher.hexdigest().encode('utf8'))[:-1]
+        return signed
