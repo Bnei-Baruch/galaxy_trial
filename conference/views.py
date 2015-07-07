@@ -54,3 +54,7 @@ def broadcaster(request):
 @login_required
 def translator(request):
     return _get_role_page(request, 'translator')
+
+@login_required
+def player(request):
+    return render(request, 'player.html')

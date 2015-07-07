@@ -66,8 +66,9 @@ Janus.init = function(options) {
 			oHead.appendChild(oScript);
 		};
 
-		addJs('adapter.js');
-		addJs('jquery.min.js');
+		// addJs('adapter.js');
+		// addJs('jquery.min.js');
+        options.callback();
 	}
 };
 

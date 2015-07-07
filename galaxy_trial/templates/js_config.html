@@ -16,7 +16,8 @@
     };
 
     config.participant = {
-        monitorPopupTitle: "{% trans 'Remote stream' %}",
+        janusUri: "http://146.185.60.46:8088/janus",
+        playerPopupUrl: "{% url 'player' %}",
         maxVideoBW: 1000,
         videoSize: [640, 480, 640, 480]
     };

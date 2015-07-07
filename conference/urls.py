@@ -10,5 +10,7 @@ urlpatterns = patterns(
     url(r'^broadcaster/?$',
         'conference.views.broadcaster', name='broadcaster'),
     url(r'^translator/?$',
-        'conference.views.translator', name='translator')
+        'conference.views.translator', name='translator'),
+    url(r'^player/?$',
+        'conference.views.player', name='player')
 )

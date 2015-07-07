@@ -19,15 +19,9 @@
 {% endblock %}
 
 {% block controls %}
-<button id="js-play-remote-button"
-    class="btn btn-primary btn-lg"
-    data-loading-text="{% trans "Waiting for remote stream..." %}"
-    disabled>
+<button id="js-play-remote-button" class="btn btn-primary btn-lg">
     {% trans "Play live stream" %}
 </button>
-
-<div id="js-remote-video" class="hide">
-</div>
 
 <div id="js-nuve-config"
     data-token="{{ nuve_token }}"

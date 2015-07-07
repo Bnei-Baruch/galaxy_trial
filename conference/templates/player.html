@@ -1,0 +1,33 @@
+{% load i18n staticfiles %}
+<html>
+    <head>
+        <title>{% trans "Remote stream" %}</title>
+        <script src="{% static 'js/jquery-2.1.1.min.js' %}"></script>
+        <script src="{% static 'js/vendor/adapter.js' %}"></script>
+        <script src="{% static 'js/vendor/janus.js' %}"></script>
+
+        {% include "js_config.html" %}
+
+        <script src="{% static 'js/janus-client.js' %}"></script>
+
+        <style>
+            body {
+                background: #777;
+                margin: 0;
+            }
+
+            #remoteVideo {
+                width: 100%;
+                height: 100%;
+            }
+
+            #remoteAudio {
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+        <video id="remoteVideo" controls autoplay></video>
+        <audio id="remoteAudio" autoplay></audio>
+    </body>
+</html>
