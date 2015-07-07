@@ -1,5 +1,7 @@
+var janusStream;
+
 (function (config) {
-    var streaming;
+    var pluginHandles = [];
 
     Janus.init({
         debug: true,
@@ -12,7 +14,10 @@
         // Create session
         janus = new Janus({
             server: config.participant.janusUri,
-            success: janusSuccess,
+            success: function () {
+                attachStreamingHandle(1, '#remoteVideo');
+                attachStreamingHandle(2, '#remoteAudio');
+            },
             error: function(error) {
                 console.error(error);
                 window.location.reload();
@@ -20,31 +25,39 @@
         });
 
         $(window).unload(function () {
-            if (streaming) {
+            pluginHandles.forEach(function (handle) {
                 var body = { "request": "stop" };
-                streaming.send({"message": body});
-                streaming.hangup();
-            }
+                handle.send({"message": body});
+                handle.hangup();
+            });
+
             janus.destroy();
         });
     }
 
-    function janusSuccess() {
-        // Attach to streaming plugin
+    function attachStreamingHandle(streamId, mediaElementSelector) {
+        var streaming;
+
         janus.attach({
             plugin: "janus.plugin.streaming",
             success: function(pluginHandle) {
                 streaming = pluginHandle;
-                playStream(1);
-                // playStream(2);
+                pluginHandles.push(streaming);
+
+                // Play stream
+                var body = { "request": "watch", id: streamId };
+                streaming.send({"message": body});
             },
             error: function(error) {
                 console.error("Error attaching plugin:", error);
             },
-            onmessage: onStreamingMessage,
+            onmessage: function (msg, jsep) {
+                onStreamingMessage(streaming, msg, jsep);
+            },
             onremotestream: function(stream) {
                 console.debug("Got a remote stream!", stream);
-                attachMediaStream($('#remoteVideo').get(0), stream);
+                attachMediaStream($(mediaElementSelector).get(0), stream);
+                janusStream = stream;
             },
             oncleanup: function() {
                 console.debug("Got a cleanup notification");
@@ -52,7 +65,7 @@
         });
     }
 
-    function onStreamingMessage(msg, jsep) {
+    function onStreamingMessage(handle, msg, jsep) {
         console.debug("Got a message", msg);
 
         var result = msg.result;
@@ -61,25 +74,20 @@
             console.debug("Handling SDP as well...", jsep);
 
             // Answer
-            streaming.createAnswer({
+            handle.createAnswer({
                 jsep: jsep,
                 media: { audioSend: false, videoSend: false },	// We want recvonly audio/video
                 success: function(jsep) {
                     console.log("Got SDP!");
                     console.log(jsep);
                     var body = { "request": "start" };
-                    streaming.send({"message": body, "jsep": jsep});
+                    handle.send({"message": body, "jsep": jsep});
                 },
                 error: function(error) {
                     console.error("WebRTC error:", error);
                 }
             });
         }
-    }
-
-    function playStream(streamId) {
-        var body = { "request": "watch", id: streamId };
-        streaming.send({"message": body});
     }
 
 })(window.config);
