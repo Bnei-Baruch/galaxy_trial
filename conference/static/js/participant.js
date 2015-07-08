@@ -43,7 +43,9 @@
         that.playButton = $('#js-play-remote-button');
 
         that.playButton.click(function () {
-            that.createPopup();
+            if (!that.remoteStreamPopup) {
+                that.createPopup();
+            }
         });
 
         $(window).unload(function () {

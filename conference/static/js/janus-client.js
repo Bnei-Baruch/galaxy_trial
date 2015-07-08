@@ -15,7 +15,9 @@ var janusStream;
         janus = new Janus({
             server: config.participant.janusUri,
             success: function () {
+                // 1 is hard coded value for Video stream
                 attachStreamingHandle(1, '#remoteVideo');
+                // 1 is hard coded value for Hebrew audio stream
                 attachStreamingHandle(2, '#remoteAudio');
             },
             error: function(error) {
