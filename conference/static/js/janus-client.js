@@ -3,9 +3,11 @@ var janusStream;
 (function (config) {
     var pluginHandles = [];
 
-    Janus.init({
-        debug: true,
-        callback: initCallback
+    $(function () {
+        Janus.init({
+            debug: true,
+            callback: initCallback
+        });
     });
 
     ////
@@ -17,12 +19,11 @@ var janusStream;
             success: function () {
                 // 1 is hard coded value for Video stream
                 attachStreamingHandle(1, '#remoteVideo');
-                // 1 is hard coded value for Hebrew audio stream
+                // 2 is hard coded value for Hebrew audio stream
                 attachStreamingHandle(2, '#remoteAudio');
             },
             error: function(error) {
-                console.error(error);
-                window.location.reload();
+                displayError(error);
             }
         });
 
@@ -51,7 +52,7 @@ var janusStream;
                 streaming.send({"message": body});
             },
             error: function(error) {
-                console.error("Error attaching plugin:", error);
+                displayError("Error attaching plugin: " + error);
             },
             onmessage: function (msg, jsep) {
                 onStreamingMessage(streaming, msg, jsep);
@@ -86,10 +87,19 @@ var janusStream;
                     handle.send({"message": body, "jsep": jsep});
                 },
                 error: function(error) {
-                    console.error("WebRTC error:", error);
+                    displayError("WebRTC error: " + error);
                 }
             });
         }
+    }
+
+    function displayError(errorMessage) {
+        $('#error')
+            .show()
+            .find('#message')
+            .text(errorMessage);
+
+        console.error(errorMessage);
     }
 
 })(window.config);

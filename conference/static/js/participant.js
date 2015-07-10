@@ -87,8 +87,10 @@
     Participant.prototype.bindPopupEvents = function () {
         var that = this;
 
-        $(that.remoteStreamPopup).unload(function () {
-            that.remoteStreamPopup = undefined;
+        $(that.remoteStreamPopup).unload(function (e) {
+            if (that.remoteStreamPopup.location.href !== 'about:blank') {
+                that.remoteStreamPopup = undefined;
+            }
         });
     };
 

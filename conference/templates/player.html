@@ -12,6 +12,7 @@
 
         <style>
             body {
+                color: white;
                 background: #777;
                 margin: 0;
             }
@@ -24,9 +25,14 @@
             #remoteAudio {
                 display: none;
             }
+
         </style>
     </head>
     <body>
+        <div id="error" style="display: none;">
+            <h1>An error occurred. Please close the remote player window and try again</h1>
+            <p>Error details: <span id="message"></span></p>
+        </div>
         <video id="remoteVideo" autoplay></video>
         <audio id="remoteAudio" autoplay></audio>
     </body>
