@@ -119,7 +119,7 @@ function Janus(gatewayCallbacks) {
 	}
 	var iceServers = gatewayCallbacks.iceServers;
 	if(iceServers === undefined || iceServers === null)
-		iceServers = [{"url": "stun:stun.l.google.com:19302"}];
+		iceServers = [{"url": "stun:galaxy.kbb1.com:3478"}];
 	var ipv6Support = gatewayCallbacks.ipv6;
 	if(ipv6Support === undefined || ipv6Support === null)
 		ipv6Support = false;
